@@ -9,6 +9,7 @@ import {
 import { Icon } from "./components/Icons";
 import { Logo } from "./components/Logo";
 import { TotalBanner } from "./components/TotalBanner";
+import { CurrencyToggle } from "./components/CurrencyToggle";
 import { CalendarGrid } from "./components/CalendarGrid";
 import { DaySheet } from "./components/DaySheet";
 import { SubscriptionSheet } from "./components/SubscriptionSheet";
@@ -46,7 +47,10 @@ export default function App() {
 
   const settings = useSettings();
   const subs = useSubscriptions();
-  const [displayCurrency, setDisplayCurrency] = useState<Currency | null>(null);
+  const [summaryDisplayCurrency, setSummaryDisplayCurrency] =
+    useState<Currency | null>(null);
+  const [listDisplayCurrency, setListDisplayCurrency] =
+    useState<Currency | null>(null);
 
   useEffect(() => {
     ensureSeed();
@@ -89,7 +93,8 @@ export default function App() {
   }, [settings?.notificationsEnabled]);
 
   const primary = (settings?.primaryCurrency ?? "ARS") as Currency;
-  const currency = displayCurrency ?? primary;
+  const summaryCurrency = summaryDisplayCurrency ?? primary;
+  const listCurrency = listDisplayCurrency ?? primary;
   const fx = settings?.fx;
   const token = settings?.logoDevKey;
   const isViewingCurrentMonth = isSameMonth(month, new Date());
@@ -100,7 +105,7 @@ export default function App() {
     let highest: { name: string; amount: number; currency: Currency } = {
       name: "",
       amount: 0,
-      currency,
+      currency: summaryCurrency,
     };
     for (const s of subs) {
       if (!s.active) continue;
@@ -108,19 +113,19 @@ export default function App() {
       let subTotal = 0;
       for (const d of dates) {
         const p = priceOn(s, d);
-        const inTarget = convert(p, s.currency, currency, fx);
+        const inTarget = convert(p, s.currency, summaryCurrency, fx);
         total += inTarget;
         subTotal += inTarget;
       }
       if (subTotal > highest.amount) {
-        highest = { name: s.name, amount: subTotal, currency };
+        highest = { name: s.name, amount: subTotal, currency: summaryCurrency };
       }
     }
     return {
       total,
       highlight: highest.amount > 0 ? highest : undefined,
     };
-  }, [subs, month, currency, fx]);
+  }, [subs, month, summaryCurrency, fx]);
 
   function openNewFor(date?: Date | null) {
     setEditing(null);
@@ -150,8 +155,8 @@ export default function App() {
           onGoToCurrentMonth={() => setMonth(startOfMonth(new Date()))}
           backToCurrentMonthLabel={t("header.backToCurrentMonth")}
           total={total}
-          currency={currency}
-          onChangeCurrency={setDisplayCurrency}
+          currency={summaryCurrency}
+          onChangeCurrency={setSummaryDisplayCurrency}
           onPrevMonth={() => setMonth(subMonths(month, 1))}
           onNextMonth={() => setMonth(addMonths(month, 1))}
           prevLabel={t("header.prevMonth")}
@@ -173,7 +178,8 @@ export default function App() {
           subs={subs ?? []}
           token={token}
           month={month}
-          displayCurrency={currency}
+          displayCurrency={listCurrency}
+          onChangeDisplayCurrency={setListDisplayCurrency}
           fx={fx}
           formatShortDay={formatShortDay}
           onPickSub={(s) => setPicked(s)}
@@ -220,8 +226,8 @@ export default function App() {
       <MetricsSheet
         open={metricsOpen}
         month={month}
-        displayCurrency={currency}
-        onChangeCurrency={setDisplayCurrency}
+        displayCurrency={summaryCurrency}
+        onChangeCurrency={setSummaryDisplayCurrency}
         onClose={() => setMetricsOpen(false)}
       />
 
@@ -300,6 +306,7 @@ function UpcomingList({
   month,
   token,
   displayCurrency,
+  onChangeDisplayCurrency,
   fx,
   formatShortDay,
   onPickSub,
@@ -308,6 +315,7 @@ function UpcomingList({
   month: Date;
   token?: string;
   displayCurrency: Currency;
+  onChangeDisplayCurrency: (c: Currency) => void;
   fx?: import("./lib/types").FxRates;
   formatShortDay: (d: Date) => string;
   onPickSub: (s: Subscription) => void;
@@ -326,16 +334,33 @@ function UpcomingList({
 
   if (items.length === 0) {
     return (
-      <div className="mt-10 px-6 text-center text-sm text-zinc-500 dark:text-white/35">
-        {t("upcoming.empty")}
+      <div className="mt-6 px-4">
+        <div className="mb-3 flex min-h-8 items-center justify-between gap-2">
+          <div className="text-[10px] uppercase tracking-[0.25em] text-zinc-500 dark:text-white/30">
+            {t("upcoming.title")}
+          </div>
+          <CurrencyToggle
+            value={displayCurrency}
+            onChange={onChangeDisplayCurrency}
+          />
+        </div>
+        <div className="px-2 pt-2 text-center text-sm text-zinc-500 dark:text-white/35">
+          {t("upcoming.empty")}
+        </div>
       </div>
     );
   }
 
   return (
     <div className="mt-6 px-4">
-      <div className="mb-2 text-[10px] uppercase tracking-[0.25em] text-zinc-500 dark:text-white/30">
-        {t("upcoming.title")}
+      <div className="mb-3 flex min-h-8 items-center justify-between gap-2">
+        <div className="text-[10px] uppercase tracking-[0.25em] text-zinc-500 dark:text-white/30">
+          {t("upcoming.title")}
+        </div>
+        <CurrencyToggle
+          value={displayCurrency}
+          onChange={onChangeDisplayCurrency}
+        />
       </div>
       <div className="divide-y divide-zinc-200/80 rounded-xl border border-zinc-200 bg-white/90 dark:divide-white/[0.04] dark:border-white/[0.05] dark:bg-white/[0.02]">
         {items.map(({ sub, date }, i) => (

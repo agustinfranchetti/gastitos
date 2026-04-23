@@ -25,6 +25,7 @@ const en = {
   },
   upcoming: {
     title: "This month",
+    showIn: "Show amounts in",
     empty: "Nothing scheduled this month.",
   },
   addFab: {

@@ -25,7 +25,7 @@ export function MetricsSheet({
   open: boolean;
   month: Date;
   displayCurrency?: Currency;
-  /** Same as home: switch display currency (ARS / USD / EUR) without leaving this sheet. */
+  /** Independent from home + calendar: ARS / USD / EUR for this sheet only. */
   onChangeCurrency?: (c: Currency) => void;
   onClose: () => void;
 }) {

@@ -47,9 +47,9 @@ export default function App() {
 
   const settings = useSettings();
   const subs = useSubscriptions();
-  const [summaryDisplayCurrency, setSummaryDisplayCurrency] =
-    useState<Currency | null>(null);
   const [listDisplayCurrency, setListDisplayCurrency] =
+    useState<Currency | null>(null);
+  const [metricsDisplayCurrency, setMetricsDisplayCurrency] =
     useState<Currency | null>(null);
 
   useEffect(() => {
@@ -93,39 +93,25 @@ export default function App() {
   }, [settings?.notificationsEnabled]);
 
   const primary = (settings?.primaryCurrency ?? "ARS") as Currency;
-  const summaryCurrency = summaryDisplayCurrency ?? primary;
+  /** Home total + list under calendar; metrics use `metricsCurrency` */
   const listCurrency = listDisplayCurrency ?? primary;
+  const metricsCurrency = metricsDisplayCurrency ?? primary;
   const fx = settings?.fx;
   const token = settings?.logoDevKey;
   const isViewingCurrentMonth = isSameMonth(month, new Date());
 
-  const { total, highlight } = useMemo(() => {
-    if (!subs) return { total: 0, highlight: undefined };
-    let total = 0;
-    let highest: { name: string; amount: number; currency: Currency } = {
-      name: "",
-      amount: 0,
-      currency: summaryCurrency,
-    };
+  const total = useMemo(() => {
+    if (!subs) return 0;
+    let sum = 0;
     for (const s of subs) {
       if (!s.active) continue;
-      const dates = paymentsInMonth(s, month);
-      let subTotal = 0;
-      for (const d of dates) {
+      for (const d of paymentsInMonth(s, month)) {
         const p = priceOn(s, d);
-        const inTarget = convert(p, s.currency, summaryCurrency, fx);
-        total += inTarget;
-        subTotal += inTarget;
-      }
-      if (subTotal > highest.amount) {
-        highest = { name: s.name, amount: subTotal, currency: summaryCurrency };
+        sum += convert(p, s.currency, listCurrency, fx);
       }
     }
-    return {
-      total,
-      highlight: highest.amount > 0 ? highest : undefined,
-    };
-  }, [subs, month, summaryCurrency, fx]);
+    return sum;
+  }, [subs, month, listCurrency, fx]);
 
   function openNewFor(date?: Date | null) {
     setEditing(null);
@@ -155,13 +141,11 @@ export default function App() {
           onGoToCurrentMonth={() => setMonth(startOfMonth(new Date()))}
           backToCurrentMonthLabel={t("header.backToCurrentMonth")}
           total={total}
-          currency={summaryCurrency}
-          onChangeCurrency={setSummaryDisplayCurrency}
+          currency={listCurrency}
           onPrevMonth={() => setMonth(subMonths(month, 1))}
           onNextMonth={() => setMonth(addMonths(month, 1))}
           prevLabel={t("header.prevMonth")}
           nextLabel={t("header.nextMonth")}
-          highlight={highlight}
         />
 
         <div className="flex min-h-0 flex-1 flex-col">
@@ -226,8 +210,8 @@ export default function App() {
       <MetricsSheet
         open={metricsOpen}
         month={month}
-        displayCurrency={summaryCurrency}
-        onChangeCurrency={setSummaryDisplayCurrency}
+        displayCurrency={metricsCurrency}
+        onChangeCurrency={setMetricsDisplayCurrency}
         onClose={() => setMetricsOpen(false)}
       />
 
@@ -269,7 +253,7 @@ function Header({
       >
         <Icon.Calendar className="!h-6 !w-6" />
       </button>
-      <div className="flex items-center gap-2.5">
+      <div className="flex shrink-0 items-center gap-2.5">
         <button
           type="button"
           className="iconbtn-header"
@@ -335,16 +319,19 @@ function UpcomingList({
   if (items.length === 0) {
     return (
       <div className="mt-6 px-4">
-        <div className="mb-3 flex min-h-8 items-center justify-between gap-2">
-          <div className="text-[10px] uppercase tracking-[0.25em] text-zinc-500 dark:text-white/30">
-            {t("upcoming.title")}
-          </div>
+        <div className="mb-1 text-[10px] uppercase tracking-[0.25em] text-zinc-500 dark:text-white/30">
+          {t("upcoming.title")}
+        </div>
+        <div className="mb-3 flex min-h-8 items-center justify-between gap-2 border-b border-zinc-200/80 pb-2.5 dark:border-white/[0.06]">
+          <span className="shrink-0 text-[11px] text-zinc-500 dark:text-white/40">
+            {t("upcoming.showIn")}
+          </span>
           <CurrencyToggle
             value={displayCurrency}
             onChange={onChangeDisplayCurrency}
           />
         </div>
-        <div className="px-2 pt-2 text-center text-sm text-zinc-500 dark:text-white/35">
+        <div className="px-2 text-center text-sm text-zinc-500 dark:text-white/35">
           {t("upcoming.empty")}
         </div>
       </div>
@@ -353,10 +340,13 @@ function UpcomingList({
 
   return (
     <div className="mt-6 px-4">
-      <div className="mb-3 flex min-h-8 items-center justify-between gap-2">
-        <div className="text-[10px] uppercase tracking-[0.25em] text-zinc-500 dark:text-white/30">
-          {t("upcoming.title")}
-        </div>
+      <div className="mb-1 text-[10px] uppercase tracking-[0.25em] text-zinc-500 dark:text-white/30">
+        {t("upcoming.title")}
+      </div>
+      <div className="mb-3 flex min-h-8 items-center justify-between gap-2 border-b border-zinc-200/80 pb-2.5 dark:border-white/[0.06]">
+        <span className="shrink-0 pr-1 text-[11px] text-zinc-500 dark:text-white/40">
+          {t("upcoming.showIn")}
+        </span>
         <CurrencyToggle
           value={displayCurrency}
           onChange={onChangeDisplayCurrency}

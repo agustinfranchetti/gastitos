@@ -3,7 +3,6 @@ import { Icon } from "./Icons";
 import type { Currency } from "../lib/types";
 import { formatMoney, symbol } from "../lib/money";
 import { useSettings } from "../lib/hooks";
-import { CurrencyToggle } from "./CurrencyToggle";
 
 export function TotalBanner({
   monthLabel,
@@ -12,12 +11,10 @@ export function TotalBanner({
   backToCurrentMonthLabel,
   total,
   currency,
-  onChangeCurrency,
   onPrevMonth,
   onNextMonth,
   prevLabel,
   nextLabel,
-  highlight,
 }: {
   monthLabel: string;
   isViewingCurrentMonth: boolean;
@@ -25,12 +22,10 @@ export function TotalBanner({
   backToCurrentMonthLabel: string;
   total: number;
   currency: Currency;
-  onChangeCurrency: (c: Currency) => void;
   onPrevMonth: () => void;
   onNextMonth: () => void;
   prevLabel: string;
   nextLabel: string;
-  highlight?: { name: string; amount: number; currency: Currency };
 }) {
   const st = useSettings();
   const useCompact = st?.useCompactAmounts !== false;
@@ -123,23 +118,6 @@ export function TotalBanner({
             </>
           )}
         </motion.div>
-        <div className="mt-3 flex flex-col items-center gap-2">
-          <CurrencyToggle value={currency} onChange={onChangeCurrency} />
-          {highlight && (
-            <div className="inline-flex items-center gap-2 text-[12px] text-zinc-500 dark:text-white/50">
-              <span className="h-1 w-1 rounded-full bg-[rgb(var(--accent-400-rgb))]" />
-              <span className="text-zinc-800 dark:text-white/80">
-                {highlight.name}
-              </span>
-              <span className="text-zinc-400 dark:text-white/30">·</span>
-              <span>
-                {formatMoney(highlight.amount, highlight.currency, {
-                  compact: useCompact,
-                })}
-              </span>
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );

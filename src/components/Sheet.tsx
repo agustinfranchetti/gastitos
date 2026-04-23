@@ -15,6 +15,7 @@ export function Sheet({
   children,
   footer,
   maxHeight = SHEET_DEFAULT_MAX_HEIGHT,
+  sizing = "default",
 }: {
   open: boolean;
   onClose: () => void;
@@ -22,6 +23,11 @@ export function Sheet({
   /** Pinned to the bottom; body scrolls independently (no footer prop = single scroll) */
   footer?: ReactNode;
   maxHeight?: string;
+  /**
+   * `default` = sheet is always the max height (scroll inside).
+   * `content` = height follows content, capped at maxHeight (day tap, small panels).
+   */
+  sizing?: "default" | "content";
 }) {
   const dragControls = useDragControls();
 
@@ -54,7 +60,11 @@ export function Sheet({
             role="dialog"
             aria-modal="true"
             aria-label="Panel"
-            className="sheet flex touch-manipulation h-[var(--sheet-h)] max-h-[var(--sheet-h)] min-h-[var(--sheet-h)] w-full max-w-full flex-col overflow-hidden"
+            className={
+              sizing === "content"
+                ? "sheet flex touch-manipulation h-auto min-h-0 w-full max-w-full flex-col overflow-hidden !min-h-0 max-h-[var(--sheet-h)]"
+                : "sheet flex touch-manipulation h-[var(--sheet-h)] max-h-[var(--sheet-h)] min-h-[var(--sheet-h)] w-full max-w-full flex-col overflow-hidden"
+            }
             style={
               {
                 "--sheet-h": maxHeight,
@@ -80,11 +90,15 @@ export function Sheet({
               <div className="h-1.5 w-10 rounded-full bg-zinc-300/80 dark:bg-white/25" />
             </div>
             <div
-              className={`sheet-scroll relative min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain ${
-                footer
-                  ? "pb-3"
-                  : "pb-[env(safe-area-inset-bottom)]"
-              }`}
+              className={
+                sizing === "content"
+                  ? "sheet-scroll relative h-auto min-h-0 w-full max-h-[calc(var(--sheet-h)-2.75rem)] overflow-x-hidden overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]"
+                  : `sheet-scroll relative min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain ${
+                      footer
+                        ? "pb-3"
+                        : "pb-[env(safe-area-inset-bottom)]"
+                    }`
+              }
             >
               {children}
             </div>

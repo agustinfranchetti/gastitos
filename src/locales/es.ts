@@ -27,6 +27,7 @@ const es = {
   },
   upcoming: {
     title: "Este mes",
+    showIn: "Ver importes en",
     empty: "No hay nada programado este mes.",
   },
   addFab: {

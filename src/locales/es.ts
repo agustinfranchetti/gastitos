@@ -90,7 +90,8 @@ const es = {
     apiKey: "Clave API",
     keyPlaceholder: "pk_...",
     logoKeyLine1: "Consigue una clave gratis en",
-    logoKeyLine2: ". La clave solo se guarda en este dispositivo.",
+    logoKeyLine2:
+      ". Con sesión iniciada se guarda en tu cuenta y se sincroniza. Sin sesión, solo en este dispositivo.",
     notifications: "Notificaciones",
     enableReminders: "Activar recordatorios",
     remindHelp:

@@ -76,9 +76,12 @@ export async function fullSync(userId: string) {
     const ru = new Date(sData.updated_at).getTime();
     const lu = localSettings ? getLocalSettingsMtime(localSettings) : 0;
     if (ru >= lu) {
-      await withoutSync(() =>
-        db.settings.put({ ...remote, id: "singleton" }),
-      );
+      await withoutSync(() => {
+        const next: Settings = localSettings
+          ? { ...localSettings, ...remote, id: "singleton" }
+          : { ...remote, id: "singleton" };
+        return db.settings.put(next);
+      });
     } else if (localSettings) {
       await pushSettings(userId, localSettings);
     }
@@ -109,11 +112,16 @@ export async function pushRow(
   if (error) console.warn("[sync] push", t, error.message);
 }
 
-export async function pushSettings(_userId: string, settings: Settings) {
+export async function pushSettings(userId: string, settings: Settings) {
   if (!supabase) return;
-  const { error } = await supabase
-    .from("settings")
-    .upsert({ data: settings, updated_at: new Date().toISOString() });
+  const { error } = await supabase.from("settings").upsert(
+    {
+      user_id: userId,
+      data: settings,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id" },
+  );
   if (error) console.warn("[sync] push settings", error.message);
 }
 
@@ -174,8 +182,13 @@ export function subscribeRealtime(userId: string): () => void {
       async (payload) => {
         if (payload.eventType === "DELETE") return;
         const s = (payload.new as { data: Settings }).data;
+        const cur = await db.settings.get("singleton");
         await withoutSync(() =>
-          db.settings.put({ ...s, id: "singleton" }),
+          db.settings.put(
+            (cur
+              ? { ...cur, ...s, id: "singleton" }
+              : { ...s, id: "singleton" }) as Settings,
+          ),
         );
       },
     )

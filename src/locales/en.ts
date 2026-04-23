@@ -89,7 +89,8 @@ const en = {
     apiKey: "API key",
     keyPlaceholder: "pk_...",
     logoKeyLine1: "Get a free key at",
-    logoKeyLine2: ". Your key stays on this device.",
+    logoKeyLine2:
+      ". When you’re signed in, it is saved to your account and syncs. Otherwise it stays on this device only.",
     notifications: "Notifications",
     enableReminders: "Enable reminders",
     remindHelp:

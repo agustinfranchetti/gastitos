@@ -372,7 +372,7 @@ export function Toggle({
       className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${
         checked
           ? "bg-[rgb(var(--accent-500-rgb))]"
-          : "bg-zinc-300 dark:bg-white/10"
+          : "bg-white/10"
       }`}
     >
       <span

@@ -12,6 +12,7 @@ import type {
   Subscription,
 } from "../lib/types";
 import { CurrencyToggle } from "./CurrencyToggle";
+import { TotalPaymentsStrip } from "./TotalPaymentsStrip";
 import { useCategories, usePeople, useSettings } from "../lib/hooks";
 import { useI18n } from "../lib/i18n";
 
@@ -291,18 +292,11 @@ export function EditSubscriptionSheet({
       {draft.cycle !== "onetime" && (
         <div className="mt-3">
           <Field label={t("editSub.endAfter")}>
-            <input
-              className="field"
-              type="number"
-              min={1}
-              placeholder={t("editSub.endAfterPh")}
-              value={draft.totalPayments ?? ""}
-              onChange={(e) =>
-                setDraft({
-                  ...draft,
-                  totalPayments: e.target.value ? Number(e.target.value) : null,
-                })
-              }
+            <TotalPaymentsStrip
+              value={draft.totalPayments ?? null}
+              onChange={(n) => setDraft({ ...draft, totalPayments: n })}
+              ariaOngoing={t("editSub.paymentsOngoingAria")}
+              ariaCount={(i) => t("editSub.paymentsCountAria", { n: i })}
             />
           </Field>
         </div>

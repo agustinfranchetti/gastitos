@@ -7,9 +7,11 @@ import { registerSW } from "virtual:pwa-register";
  */
 export function usePwaUpdate() {
   const [needRefresh, setNeedRefresh] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
   const updateRef = useRef<((reloadPage?: boolean) => Promise<void>) | null>(
     null,
   );
+  const regRef = useRef<ServiceWorkerRegistration | null>(null);
 
   useEffect(() => {
     const update = registerSW({
@@ -18,6 +20,7 @@ export function usePwaUpdate() {
         setNeedRefresh(true);
       },
       onRegisteredSW(_url, reg) {
+        regRef.current = reg ?? null;
         if (!import.meta.env.PROD) return;
         const onVis = () => {
           if (document.visibilityState === "visible") void reg?.update();
@@ -29,6 +32,20 @@ export function usePwaUpdate() {
     updateRef.current = update;
   }, []);
 
+  /** Ask the service worker to fetch a new version (shows update chip if available). */
+  const checkForUpdate = useCallback(async () => {
+    if (!("serviceWorker" in navigator)) return;
+    setIsChecking(true);
+    try {
+      const reg =
+        regRef.current ??
+        (await navigator.serviceWorker.getRegistration());
+      if (reg) await reg.update();
+    } finally {
+      setIsChecking(false);
+    }
+  }, []);
+
   const applyUpdate = useCallback(async () => {
     setNeedRefresh(false);
     await updateRef.current?.(true);
@@ -36,5 +53,5 @@ export function usePwaUpdate() {
 
   const dismiss = useCallback(() => setNeedRefresh(false), []);
 
-  return { needRefresh, applyUpdate, dismiss };
+  return { needRefresh, applyUpdate, dismiss, checkForUpdate, isChecking };
 }

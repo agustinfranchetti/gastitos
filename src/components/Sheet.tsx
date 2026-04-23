@@ -9,11 +9,14 @@ export function Sheet({
   open,
   onClose,
   children,
+  footer,
   maxHeight = "85vh",
 }: {
   open: boolean;
   onClose: () => void;
   children: ReactNode;
+  /** Pinned to the bottom; body scrolls independently (no footer prop = single scroll) */
+  footer?: ReactNode;
   maxHeight?: string;
 }) {
   const dragControls = useDragControls();
@@ -74,10 +77,19 @@ export function Sheet({
               <div className="h-1.5 w-10 rounded-full bg-zinc-300/80 dark:bg-white/25" />
             </div>
             <div
-              className="sheet-scroll relative min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]"
+              className={`sheet-scroll relative min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain ${
+                footer
+                  ? "pb-3"
+                  : "pb-[env(safe-area-inset-bottom)]"
+              }`}
             >
               {children}
             </div>
+            {footer && (
+              <div className="shrink-0 border-t border-white/[0.08] pt-3 [padding-bottom:max(1rem,env(safe-area-inset-bottom))]">
+                {footer}
+              </div>
+            )}
           </motion.div>
         </>
       )}

@@ -8,11 +8,10 @@ import { newId } from "../lib/id";
 import { guessDomain } from "../lib/logo";
 import type {
   BillingCycle,
-  Currency,
   NotifyRule,
   Subscription,
 } from "../lib/types";
-import { CURRENCIES } from "../lib/types";
+import { CurrencyToggle } from "./CurrencyToggle";
 import { useCategories, usePeople, useSettings } from "../lib/hooks";
 import { useI18n } from "../lib/i18n";
 
@@ -60,6 +59,7 @@ export function EditSubscriptionSheet({
   const cats = useCategories();
   const { t, cycle } = useI18n();
   const [draft, setDraft] = useState<Draft>(blank());
+  const [remindersOpen, setRemindersOpen] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -71,6 +71,9 @@ export function EditSubscriptionSheet({
               currency: settings?.primaryCurrency ?? "ARS",
               startDate: seedStartDate ?? blank().startDate,
             },
+      );
+      setRemindersOpen(
+        !!(initial?.notify?.length && initial.notify.some((n) => n.enabled)),
       );
     }
   }, [open, initial, seedStartDate, settings?.primaryCurrency]);
@@ -90,8 +93,7 @@ export function EditSubscriptionSheet({
     if (!draft.name.trim()) return;
     const now = new Date().toISOString();
     const domain =
-      draft.domain?.trim() ||
-      (draft.name ? guessDomain(draft.name) : "");
+      guessDomain(draft.name.trim()) || (initial?.domain?.trim() ?? "");
     const finalSub: Subscription = {
       ...draft,
       domain,
@@ -103,7 +105,8 @@ export function EditSubscriptionSheet({
     onClose();
   }
 
-  const desiredDomain = draft.domain || guessDomain(draft.name || "");
+  const desiredDomain =
+    guessDomain(draft.name || "") || (draft.domain?.trim() ?? "");
   const [debouncedDomain, setDebouncedDomain] = useState(desiredDomain);
   const timer = useRef<number | null>(null);
   useEffect(() => {
@@ -134,7 +137,21 @@ export function EditSubscriptionSheet({
   }
 
   return (
-    <Sheet open={open} onClose={onClose}>
+    <Sheet
+      open={open}
+      onClose={onClose}
+      maxHeight="90vh"
+      footer={
+        <div className="flex gap-2">
+          <button onClick={onClose} className="btn-ghost flex-1">
+            {t("editSub.cancel")}
+          </button>
+          <button onClick={save} className="btn-primary flex-1">
+            <Icon.Check /> {t("editSub.save")}
+          </button>
+        </div>
+      }
+    >
       <div className="mb-4 flex items-center justify-between">
         <div className="title-app text-2xl">
           {initial ? t("editSub.edit") : t("editSub.new")}
@@ -144,43 +161,55 @@ export function EditSubscriptionSheet({
         </button>
       </div>
 
-      <div className="mb-5 flex items-center gap-4">
-        <Logo sub={logoPreview} token={token} size={64} rounded={18} />
-        <div className="flex-1 space-y-2">
+      <div className="mb-4">
+        <div className="flex items-center gap-3">
+          <Logo sub={logoPreview} token={token} size={56} rounded={16} />
           <input
-            className="field text-base"
+            className="field min-w-0 flex-1 py-2.5 !text-lg font-display font-semibold tracking-tight sm:!text-xl"
             placeholder={t("editSub.namePh")}
             value={draft.name}
             onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+            autoComplete="off"
           />
-          <input
-            className="field text-sm"
-            placeholder={t("editSub.domainPh")}
-            value={draft.domain ?? ""}
-            onChange={(e) => setDraft({ ...draft, domain: e.target.value })}
-          />
+        </div>
+        <div className="mt-3 w-full">
+          <Field label={t("editSub.description")}>
+            <textarea
+              className="field max-h-24 min-h-[2.5rem] w-full resize-y py-1.5 text-sm leading-snug"
+              placeholder={t("editSub.descriptionPh")}
+              value={draft.notes ?? ""}
+              onChange={(e) =>
+                setDraft({ ...draft, notes: e.target.value || undefined })
+              }
+              rows={2}
+            />
+          </Field>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <Field label={t("editSub.price")}>
-          <input
-            className="field"
-            type="number"
-            step="0.01"
-            value={draft.price || ""}
-            onChange={(e) =>
-              setDraft({ ...draft, price: Number(e.target.value) })
-            }
-          />
-        </Field>
-        <Field label={t("editSub.currency")}>
-          <Select
-            value={draft.currency}
-            onChange={(v) => setDraft({ ...draft, currency: v as Currency })}
-            options={CURRENCIES.map((c) => ({ value: c, label: c }))}
-          />
-        </Field>
+        <div className="min-w-0">
+          <Field label={t("editSub.price")}>
+            <input
+              className="field w-full"
+              type="number"
+              step="0.01"
+              value={draft.price || ""}
+              onChange={(e) =>
+                setDraft({ ...draft, price: Number(e.target.value) })
+              }
+            />
+          </Field>
+        </div>
+        <div className="min-w-0 w-full self-start">
+          <Field label={t("editSub.currency")}>
+            <CurrencyToggle
+              fullWidth
+              value={draft.currency}
+              onChange={(c) => setDraft({ ...draft, currency: c })}
+            />
+          </Field>
+        </div>
         <Field label={t("editSub.cycle")}>
           <Select
             value={draft.cycle}
@@ -214,16 +243,6 @@ export function EditSubscriptionSheet({
             />
           </Field>
         )}
-        <Field label={t("editSub.startDate")}>
-          <input
-            className="field"
-            type="date"
-            value={draft.startDate}
-            onChange={(e) =>
-              setDraft({ ...draft, startDate: e.target.value })
-            }
-          />
-        </Field>
         <Field label={t("editSub.who")}>
           <Select
             value={draft.personId ?? ""}
@@ -237,33 +256,36 @@ export function EditSubscriptionSheet({
             ]}
           />
         </Field>
-        <Field label={t("editSub.category")}>
-          <Select
-            value={draft.categoryId ?? ""}
-            onChange={(v) => setDraft({ ...draft, categoryId: v || null })}
-            options={[
-              { value: "", label: t("editSub.none") },
-              ...(cats ?? []).map((c) => ({
-                value: c.id,
-                label: (c.emoji?.trim() ? `${c.emoji.trim()} ` : "") + c.name,
-              })),
-            ]}
-          />
-        </Field>
       </div>
 
-      <div className="mt-3">
-        <Field label={t("editSub.notes")}>
-          <textarea
-            className="field min-h-[5rem] w-full resize-y"
-            placeholder={t("editSub.notesPh")}
-            value={draft.notes ?? ""}
-            onChange={(e) =>
-              setDraft({ ...draft, notes: e.target.value || undefined })
-            }
-            rows={3}
-          />
-        </Field>
+      <div className="mt-3 grid grid-cols-2 gap-3">
+        <div className="min-w-0">
+          <Field label={t("editSub.startDate")}>
+            <input
+              className="field field-date w-full"
+              type="date"
+              value={draft.startDate}
+              onChange={(e) =>
+                setDraft({ ...draft, startDate: e.target.value })
+              }
+            />
+          </Field>
+        </div>
+        <div className="min-w-0">
+          <Field label={t("editSub.category")}>
+            <Select
+              value={draft.categoryId ?? ""}
+              onChange={(v) => setDraft({ ...draft, categoryId: v || null })}
+              options={[
+                { value: "", label: t("editSub.none") },
+                ...(cats ?? []).map((c) => ({
+                  value: c.id,
+                  label: (c.emoji?.trim() ? `${c.emoji.trim()} ` : "") + c.name,
+                })),
+              ]}
+            />
+          </Field>
+        </div>
       </div>
 
       {draft.cycle !== "onetime" && (
@@ -287,52 +309,74 @@ export function EditSubscriptionSheet({
       )}
 
       <div className="mt-5">
-        <div className="mb-2 text-xs uppercase tracking-wider text-white/40">
-          {t("editSub.remindTitle")}
-        </div>
-        <div className="tile divide-y divide-white/5 overflow-hidden rounded-2xl">
-          {draft.notify.map((rule, i) => (
-            <label
-              key={i}
-              className="flex items-center justify-between px-4 py-3"
-            >
-              <div>
-                <div className="text-sm">
-                  {rule.daysBefore === 0
-                    ? t("editSub.daysBefore0")
-                    : t("editSub.daysBeforeN", { n: rule.daysBefore })}
-                </div>
-                <div className="text-xs text-white/50">
-                  {t("editSub.remindFires")}
-                </div>
+        <button
+          type="button"
+          className="flex w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left transition-colors active:bg-white/[0.06]"
+          onClick={() => setRemindersOpen((o) => !o)}
+          aria-expanded={remindersOpen}
+          aria-label={
+            remindersOpen
+              ? t("editSub.remindersCollapse")
+              : t("editSub.remindersExpand")
+          }
+        >
+          <div className="min-w-0">
+            <div className="text-[10px] font-medium uppercase tracking-wider text-white/40">
+              {t("editSub.remindTitle")}
+            </div>
+            {!remindersOpen && (
+              <div className="mt-1 text-sm text-white/65">
+                {(() => {
+                  const n = draft.notify.filter((r) => r.enabled).length;
+                  if (n === 0) return t("editSub.remindersAllOff");
+                  return t("editSub.remindersNOn", { n });
+                })()}
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  className="field !w-16 !py-1 text-center"
-                  type="number"
-                  min={0}
-                  value={rule.daysBefore}
-                  onChange={(e) =>
-                    setNotify(i, { daysBefore: Number(e.target.value) })
-                  }
-                />
-                <Toggle
-                  checked={rule.enabled}
-                  onChange={(v) => setNotify(i, { enabled: v })}
-                />
-              </div>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-6 flex gap-2">
-        <button onClick={onClose} className="btn-ghost flex-1">
-          {t("editSub.cancel")}
+            )}
+          </div>
+          <Icon.ChevronDown
+            className={`h-5 w-5 shrink-0 text-white/50 transition-transform ${
+              remindersOpen ? "rotate-180" : ""
+            }`}
+            aria-hidden
+          />
         </button>
-        <button onClick={save} className="btn-primary flex-1">
-          <Icon.Check /> {t("editSub.save")}
-        </button>
+        {remindersOpen && (
+          <div className="tile mt-2 divide-y divide-white/5 overflow-hidden rounded-2xl">
+            {draft.notify.map((rule, i) => (
+              <label
+                key={i}
+                className="flex items-center justify-between px-4 py-3"
+              >
+                <div className="min-w-0 pr-2">
+                  <div className="text-sm">
+                    {rule.daysBefore === 0
+                      ? t("editSub.daysBefore0")
+                      : t("editSub.daysBeforeN", { n: rule.daysBefore })}
+                  </div>
+                  <div className="text-xs text-white/50">
+                    {t("editSub.remindFires")}
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <input
+                    className="field !w-16 !py-1 text-center"
+                    type="number"
+                    min={0}
+                    value={rule.daysBefore}
+                    onChange={(e) =>
+                      setNotify(i, { daysBefore: Number(e.target.value) })
+                    }
+                  />
+                  <Toggle
+                    checked={rule.enabled}
+                    onChange={(v) => setNotify(i, { enabled: v })}
+                  />
+                </div>
+              </label>
+            ))}
+          </div>
+        )}
       </div>
     </Sheet>
   );

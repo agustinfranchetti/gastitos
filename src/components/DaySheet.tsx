@@ -61,8 +61,13 @@ export function DaySheet({
               className="flex w-full items-center gap-3 px-3 py-3 text-left active:bg-zinc-100 dark:active:bg-white/5"
             >
               <Logo sub={s} token={token} size={36} rounded={10} />
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <div className="text-sm text-zinc-800 dark:text-white">{s.name}</div>
+                {s.notes?.trim() && (
+                  <div className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-zinc-500 dark:text-white/45">
+                    {s.notes.trim()}
+                  </div>
+                )}
                 <div className="text-[11px] text-zinc-500 dark:text-white/40">
                   {cycle(s.cycle)}
                 </div>

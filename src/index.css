@@ -162,6 +162,16 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
+/* Native date picker icon — visible on dark fields (Chromium / Safari) */
+input.field-date::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.9;
+  filter: invert(1);
+}
+input.field-date {
+  color-scheme: dark;
+}
+
 ::selection {
   background: rgb(var(--accent-400-rgb) / 0.35);
 }

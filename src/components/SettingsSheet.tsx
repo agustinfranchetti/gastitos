@@ -22,9 +22,14 @@ import { DiscPickerModal } from "./DiscPickerModal";
 export function SettingsSheet({
   open,
   onClose,
+  onCheckPwaUpdate,
+  pwaUpdateChecking,
 }: {
   open: boolean;
   onClose: () => void;
+  /** Manual PWA “check for update” (service worker). */
+  onCheckPwaUpdate?: () => void | Promise<void>;
+  pwaUpdateChecking?: boolean;
 }) {
   const settings = useSettings();
   const people = usePeople();
@@ -247,6 +252,25 @@ export function SettingsSheet({
               </p>
             </div>
           </section>
+
+          {onCheckPwaUpdate && (
+            <section>
+              <SettingsCategoryLabel>{t("settings.categoryApp")}</SettingsCategoryLabel>
+              <div className="mt-1.5">
+                <p className="mb-2 text-xs text-zinc-500 dark:text-white/45">
+                  {t("settings.checkPwaUpdateHint")}
+                </p>
+                <button
+                  type="button"
+                  className="btn-ghost w-full !py-2.5 text-sm"
+                  disabled={pwaUpdateChecking}
+                  onClick={() => void onCheckPwaUpdate()}
+                >
+                  {pwaUpdateChecking ? t("settings.checkPwaUpdateBusy") : t("settings.checkPwaUpdate")}
+                </button>
+              </div>
+            </section>
+          )}
         </div>
 
         <div className="h-2" />

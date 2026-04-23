@@ -25,7 +25,8 @@ import { syncDocumentAccentFromSettings } from "./lib/theme";
 export default function App() {
   useAuth();
   const { t, formatMonth, formatShortDay } = useI18n();
-  const { needRefresh, applyUpdate, dismiss } = usePwaUpdate();
+  const { needRefresh, applyUpdate, dismiss, checkForUpdate, isChecking: pwaCheckBusy } =
+    usePwaUpdate();
 
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
   const [picked, setPicked] = useState<Subscription | null>(null);
@@ -217,6 +218,8 @@ export default function App() {
       <SettingsSheet
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
+        onCheckPwaUpdate={checkForUpdate}
+        pwaUpdateChecking={pwaCheckBusy}
       />
 
       <MonthYearPickerSheet
@@ -332,8 +335,13 @@ function UpcomingList({
             className="flex w-full items-center gap-3 px-3 py-2.5 text-left active:bg-zinc-100 dark:active:bg-white/5"
           >
             <Logo sub={sub} token={token} size={32} rounded={10} />
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <div className="text-sm text-zinc-800 dark:text-white">{sub.name}</div>
+              {sub.notes?.trim() && (
+                <div className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-zinc-500 dark:text-white/45">
+                  {sub.notes.trim()}
+                </div>
+              )}
               <div className="text-[11px] text-zinc-500 dark:text-white/40">
                 {formatShortDay(date)}
                 {sub.currency !== displayCurrency && (

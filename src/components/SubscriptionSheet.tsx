@@ -185,7 +185,7 @@ export function SubscriptionSheet({
       {sub.notes?.trim() && (
         <div className="mt-4 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-left">
           <div className="text-[10px] font-medium uppercase tracking-wider text-white/45">
-            {t("subscription.notes")}
+            {t("subscription.description")}
           </div>
           <p className="mt-2 text-sm leading-relaxed text-white/90 whitespace-pre-wrap">
             {sub.notes.trim()}

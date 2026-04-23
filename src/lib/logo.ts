@@ -20,8 +20,7 @@ export function logoUrl(
 }
 
 /**
- * Guesses a .com domain from a brand name. Good enough as a starting point;
- * users can edit the domain in the subscription sheet.
+ * Guesses a .com domain from a brand name. Used to resolve logo.dev URLs.
  */
 export function guessDomain(name: string): string {
   const clean = name

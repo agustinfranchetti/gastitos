@@ -188,27 +188,51 @@ function AccountSection() {
   const { t } = useI18n();
   const { user } = useAuth();
   const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [phase, setPhase] = useState<"email" | "otp">("email");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  async function signIn() {
+  async function sendCode() {
     if (!supabase || !email.trim()) return;
     setBusy(true);
     setErr(null);
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: { emailRedirectTo: window.location.origin },
+      options: {
+        shouldCreateUser: true,
+      },
+    });
+    setBusy(false);
+    if (error) {
+      setErr(error.message);
+      return;
+    }
+    setPhase("otp");
+    setOtp("");
+  }
+
+  async function verify() {
+    if (!supabase || !email.trim()) return;
+    const token = otp.replace(/\D/g, "").slice(0, 6);
+    if (token.length !== 6) return;
+    setBusy(true);
+    setErr(null);
+    const { error } = await supabase.auth.verifyOtp({
+      email: email.trim(),
+      token,
+      type: "email",
     });
     setBusy(false);
     if (error) setErr(error.message);
-    else setSent(true);
   }
 
   async function signOut() {
     await supabase?.auth.signOut();
-    setSent(false);
+    setPhase("email");
+    setOtp("");
     setEmail("");
+    setErr(null);
   }
 
   return (
@@ -228,9 +252,56 @@ function AccountSection() {
             <Icon.LogOut /> {t("settings.signOut")}
           </button>
         </div>
-      ) : sent ? (
-        <div className="text-sm text-white/70">
-          {t("settings.checkEmail", { email: email })}
+      ) : phase === "otp" ? (
+        <div className="space-y-3">
+          <p className="text-sm text-white/70">
+            {t("settings.otpHint", { email })}
+          </p>
+          <div>
+            <div className="mb-1 text-[11px] text-white/40">
+              {t("settings.enterCode")}
+            </div>
+            <input
+              className="field tracking-[0.35em] placeholder:tracking-normal"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              placeholder={t("settings.otpPlaceholder")}
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/[^\d]/g, ""))}
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => void verify()}
+              disabled={busy || otp.replace(/\D/g, "").length !== 6}
+              className="btn-primary !py-2 text-xs"
+            >
+              {busy ? t("settings.busy") : t("settings.verify")}
+            </button>
+            <button
+              type="button"
+              onClick={() => void sendCode()}
+              disabled={busy}
+              className="btn-ghost !py-2 text-xs"
+            >
+              {t("settings.resendCode")}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setPhase("email");
+                setOtp("");
+                setErr(null);
+              }}
+              className="ml-auto text-xs text-white/50 underline"
+            >
+              {t("settings.changeEmail")}
+            </button>
+          </div>
+          {err && <div className="text-xs text-red-400">{err}</div>}
         </div>
       ) : (
         <div className="space-y-2">
@@ -244,13 +315,17 @@ function AccountSection() {
               placeholder={t("settings.emailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void sendCode();
+              }}
             />
             <button
-              onClick={signIn}
+              type="button"
+              onClick={() => void sendCode()}
               disabled={busy}
               className="btn-primary !py-2 text-xs"
             >
-              {busy ? t("settings.busy") : t("settings.sendLink")}
+              {busy ? t("settings.busy") : t("settings.sendCode")}
             </button>
           </div>
           {err && <div className="text-xs text-red-400">{err}</div>}

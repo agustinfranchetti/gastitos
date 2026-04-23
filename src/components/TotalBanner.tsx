@@ -22,9 +22,9 @@ export function TotalBanner({
   const sep = formatMoney(1.1, currency).includes(",") ? "," : ".";
 
   return (
-    <div className="relative px-4 pb-4 pt-3">
+    <div className="relative px-4 pb-5 pt-1">
       <div className="text-center">
-        <div className="mb-1 text-[12px] font-medium tracking-wide text-white/40">
+        <div className="mb-2 text-[15px] font-medium tracking-[0.02em] text-white/50 sm:text-[16px]">
           {monthLabel}
         </div>
         <motion.div

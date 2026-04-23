@@ -16,7 +16,7 @@ Inspired by the polished calendar-of-logos UI of modern subscription apps, with 
 - **Fixed-duration subscriptions** — e.g. "only 5 payments" (great for courses, payment plans)
 - **Tap any day** — see what's due that day and add a new subscription anchored to it
 - **Offline-first** — data lives in IndexedDB on the device, synced to Supabase when online
-- **Cloud sync** — sign in with an email magic link; two-way sync + realtime across devices
+- **Cloud sync** — sign in with an email one-time code (OTP); two-way sync + realtime across devices
 - **Installable PWA**
 
 ## Stack
@@ -40,7 +40,7 @@ Open `http://localhost:5173`.
 
 1. Create a free project at <https://supabase.com>.
 2. Open **SQL editor** and run the migration in `supabase/schema.sql` (creates 4 tables with RLS by `auth.uid()`).
-3. **Authentication → Providers**: enable **Email** (magic link is on by default). Add your dev URL (`http://localhost:5173`) to **Additional redirect URLs**.
+3. **Authentication → URL configuration**: set **Site URL** to your production app (e.g. `https://afranchetti-gastitos.vercel.app`). Under **Redirect URLs**, add that URL and `http://localhost:5173` for local dev. **Authentication → Providers → Email**: enable email sign-in; ensure **email OTP** / one-time code is available (not magic-link–only) so it matches the in-app code flow.
 4. Copy your **Project URL** and **anon public key** into `.env`:
 
    ```
@@ -48,7 +48,7 @@ Open `http://localhost:5173`.
    VITE_SUPABASE_ANON_KEY=...
    ```
 
-5. Restart dev server. In the app, open **Settings → Account**, enter your email, click the magic link. From then on, every local change is pushed upstream and realtime changes from any other device flow back in.
+5. Restart dev server. In the app, open **Settings → Account**, enter your email, paste the 6-digit code from the email. From then on, every local change is pushed upstream and realtime changes from any other device flow back in.
 
 If you leave `.env` unset the app still works — just as a local-only PWA.
 

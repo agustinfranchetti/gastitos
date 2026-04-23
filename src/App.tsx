@@ -17,10 +17,12 @@ import { convert, fetchFxRates } from "./lib/money";
 import { scanAndNotify } from "./lib/notify";
 import { useAuth } from "./lib/useAuth";
 import { useI18n } from "./lib/i18n";
+import { usePwaUpdate } from "./lib/usePwaUpdate";
 
 export default function App() {
   useAuth();
   const { t, formatMonth, formatShortDay, dateLocale } = useI18n();
+  const { needRefresh, applyUpdate, dismiss } = usePwaUpdate();
 
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
   const [picked, setPicked] = useState<Subscription | null>(null);
@@ -113,15 +115,38 @@ export default function App() {
         t={t}
       />
 
-      <TotalBanner
-        monthLabel={formatMonth(month)}
-        total={total}
-        currency={currency}
-        onChangeCurrency={setDisplayCurrency}
-        highlight={highlight}
-      />
+      <div className="flex min-h-0 flex-1 flex-col pt-5">
+        {needRefresh && (
+          <div className="mb-3 flex shrink-0 items-center justify-between gap-2 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2.5 text-sm">
+            <span className="text-white/80">{t("app.updateAvailable")}</span>
+            <div className="flex shrink-0 items-center gap-1.5">
+              <button
+                type="button"
+                onClick={dismiss}
+                className="rounded-full px-2.5 py-1.5 text-xs text-white/55 active:bg-white/10"
+              >
+                {t("app.updateLater")}
+              </button>
+              <button
+                type="button"
+                onClick={() => void applyUpdate()}
+                className="btn-primary !py-1.5 !text-xs"
+              >
+                {t("app.update")}
+              </button>
+            </div>
+          </div>
+        )}
 
-      <div className="flex-1">
+        <TotalBanner
+          monthLabel={formatMonth(month)}
+          total={total}
+          currency={currency}
+          onChangeCurrency={setDisplayCurrency}
+          highlight={highlight}
+        />
+
+        <div className="flex min-h-0 flex-1 flex-col">
           <CalendarGrid
             month={month}
             subs={subs ?? []}
@@ -140,6 +165,7 @@ export default function App() {
           formatShortDay={formatShortDay}
           onPickSub={(s) => setPicked(s)}
         />
+        </div>
       </div>
 
       <AddFab label={t("addFab.label")} onClick={() => openNewFor(null)} />

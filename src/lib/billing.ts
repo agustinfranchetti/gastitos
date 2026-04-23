@@ -8,16 +8,24 @@ import {
   isAfter,
   isBefore,
   isEqual,
+  parse,
   parseISO,
   startOfDay,
   startOfMonth,
 } from "date-fns";
 import type { Raise, Subscription } from "./types";
 
+/** Max number of charge events; 0/undefined/negative = unlimited. */
+export function maxPaymentCount(sub: Subscription): number {
+  const n = sub.totalPayments;
+  if (n == null || n <= 0) return Infinity;
+  return n;
+}
+
 export function nextPaymentAfter(sub: Subscription, from: Date): Date | null {
   const start = parseISO(sub.startDate);
   const end = sub.endDate ? parseISO(sub.endDate) : null;
-  const max = sub.totalPayments ?? Infinity;
+  const max = maxPaymentCount(sub);
   let d = start;
   let count = 0;
   const safety = 5000;
@@ -74,7 +82,7 @@ export function paymentsInMonth(sub: Subscription, month: Date): Date[] {
   // Walk from the real start so we can count occurrences for totalPayments.
   let d = start;
   let count = 0;
-  const max = sub.totalPayments ?? Infinity;
+  const max = maxPaymentCount(sub);
   const out: Date[] = [];
   let guard = 0;
   while (count < max && !isAfter(d, mEnd) && guard < 5000) {
@@ -103,6 +111,33 @@ export function priceOn(sub: Subscription, on: Date): number {
     price = applyRaise(price, r);
   }
   return price;
+}
+
+/**
+ * Sum of all charge amounts from first payment through `asOf` (inclusive, local calendar day).
+ * Uses the same walk as the calendar (advance/raises) and fixes date-only + UTC issues.
+ */
+export function totalSpentThroughDate(sub: Subscription, asOf: Date): number {
+  const max = maxPaymentCount(sub);
+  const asOfDay = startOfDay(asOf);
+  const end = sub.endDate
+    ? startOfDay(parse(sub.endDate, "yyyy-MM-dd", asOf))
+    : null;
+  let d = startOfDay(parse(sub.startDate, "yyyy-MM-dd", asOf));
+  if (Number.isNaN(d.getTime())) return 0;
+
+  let total = 0;
+  let count = 0;
+  let guard = 0;
+  while (guard < 5000 && count < max) {
+    if (end && isAfter(startOfDay(d), end)) break;
+    if (isAfter(startOfDay(d), asOfDay)) break;
+    total += priceOn(sub, d);
+    d = advance(d, sub);
+    count++;
+    guard++;
+  }
+  return total;
 }
 
 export function applyRaise(prev: number, r: Raise): number {

@@ -5,11 +5,11 @@ import { Logo } from "./Logo";
 import { Icon } from "./Icons";
 import { db } from "../lib/db";
 import {
-  advance,
   applyRaise,
   nextPaymentAfter,
   paymentsRemaining,
   priceOn,
+  totalSpentThroughDate,
 } from "../lib/billing";
 import { formatMoney } from "../lib/money";
 import type { Subscription } from "../lib/types";
@@ -144,7 +144,7 @@ export function SubscriptionSheet({
         )}
         <Row
           label={t("subscription.totalSpent")}
-          value={estimateSpent(sub, today, (n) => money(n))}
+          value={money(totalSpentThroughDate(sub, today))}
         />
         <Row
           label={t("subscription.yearlyEq")}
@@ -237,35 +237,6 @@ function Row({
       </span>
     </C>
   );
-}
-
-function estimateSpent(
-  sub: Subscription,
-  today: Date,
-  formatAmount: (n: number) => string,
-): string {
-  // Roughly: iterate from startDate to today, add priceOn each period.
-  const perYear: Record<string, number> = {
-    weekly: 52,
-    monthly: 12,
-    quarterly: 4,
-    yearly: 1,
-    custom: 365 / Math.max(1, sub.customEveryDays ?? 30),
-  };
-  const start = parseISO(sub.startDate);
-  const max = sub.totalPayments ?? Infinity;
-  let total = 0;
-  let d = start;
-  let guard = 0;
-  let count = 0;
-  while (d <= today && guard < 5000 && count < max) {
-    total += priceOn(sub, d);
-    d = advance(d, sub);
-    guard++;
-    count++;
-  }
-  if (guard === 0) total = priceOn(sub, today) * perYear[sub.cycle];
-  return formatAmount(total);
 }
 
 function RaiseSheet({

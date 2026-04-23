@@ -25,7 +25,14 @@ export const Icon = {
       <path d="m20 20-3.5-3.5" />
     </>,
   ),
-  Chart: mk(<path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />),
+  /** Metrics / spending overview — soft rounded columns */
+  Chart: mk(
+    <>
+      <rect x="4.5" y="9" width="4" height="12" rx="1.5" fill="none" />
+      <rect x="10" y="5" width="4" height="16" rx="1.5" fill="none" />
+      <rect x="15.5" y="11" width="4" height="10" rx="1.5" fill="none" />
+    </>,
+  ),
   Gear: mk(
     <>
       <circle cx="12" cy="12" r="3" />
@@ -36,6 +43,14 @@ export const Icon = {
   ChevronDown: mk(<path d="m6 9 6 6 6-6" />),
   ChevronLeft: mk(<path d="m15 6-6 6 6 6" />),
   ChevronRight: mk(<path d="m9 6 6 6-6 6" />),
+  /** Month picker */
+  Calendar: mk(
+    <>
+      <rect x="3" y="4" width="18" height="18" rx="2.5" fill="none" />
+      <path d="M3 10.5h18" fill="none" />
+      <path d="M8.5 2.5v3M15.5 2.5v3" fill="none" />
+    </>,
+  ),
   Bell: mk(
     <>
       <path d="M6 8a6 6 0 1 1 12 0c0 7 3 7 3 9H3c0-2 3-2 3-9Z" />

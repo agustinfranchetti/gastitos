@@ -13,6 +13,10 @@ const es = {
   header: {
     prevMonth: "Mes anterior",
     nextMonth: "Mes siguiente",
+    pickMonth: "Elegir mes",
+    pickMonthYear: "Ir a un mes",
+    pickMonthHint: "Desliza y pulsa Listo.",
+    pickMonthDone: "Listo",
     metrics: "Métricas",
     settings: "Ajustes",
   },

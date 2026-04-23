@@ -66,7 +66,7 @@ export function CalendarGrid({
 
   return (
     <div className="overflow-hidden px-4">
-      <div className="grid grid-cols-7 gap-1.5 pb-2 text-center text-[10px] uppercase tracking-[0.25em] text-white/25">
+      <div className="grid grid-cols-7 gap-1.5 pb-2 text-center text-[10px] uppercase tracking-[0.25em] text-white/65">
         {labels.map((l, i) => (
           <div key={i}>{l}</div>
         ))}
@@ -122,21 +122,21 @@ function Cell({
   return (
     <button
       onClick={onPick}
-      className={`relative aspect-square rounded-[12px] border p-1 text-left transition-colors ${
+      className={`relative aspect-square rounded-[12px] border p-1 text-left shadow-[0_1px_0_rgba(255,255,255,0.05),inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors ${
         today
-          ? "border-ember-400/40"
+          ? "border-ember-400/60 bg-ember-500/10 ring-1 ring-ember-400/20"
           : empty
-            ? "border-white/5 hover:border-white/10"
-            : "border-white/[0.06] bg-white/[0.02]"
-      } active:bg-white/5`}
+            ? "border-white/15 bg-zinc-900/90 hover:border-white/25 hover:bg-zinc-800/80"
+            : "border-white/20 bg-white/[0.08] ring-1 ring-white/5"
+      } active:brightness-95`}
     >
       <span
-        className={`absolute left-1.5 top-1 text-[10px] ${
+        className={`absolute left-1.5 top-1 text-[10px] font-medium ${
           empty
             ? today
-              ? "text-ember-200/90"
-              : "text-white/25"
-            : "text-white/60"
+              ? "text-ember-200"
+              : "text-white/55"
+            : "text-white/80"
         }`}
       >
         {dayNum}

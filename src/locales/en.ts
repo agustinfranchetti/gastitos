@@ -11,6 +11,10 @@ const en = {
   header: {
     prevMonth: "Previous month",
     nextMonth: "Next month",
+    pickMonth: "Choose month",
+    pickMonthYear: "Go to month",
+    pickMonthHint: "Scroll and tap Done.",
+    pickMonthDone: "Done",
     metrics: "Metrics",
     settings: "Settings",
   },

@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Icon } from "./Icons";
 import type { Currency } from "../lib/types";
 import { formatMoney, symbol } from "../lib/money";
 import { CurrencyToggle } from "./CurrencyToggle";
@@ -8,12 +9,20 @@ export function TotalBanner({
   total,
   currency,
   onChangeCurrency,
+  onPrevMonth,
+  onNextMonth,
+  prevLabel,
+  nextLabel,
   highlight,
 }: {
   monthLabel: string;
   total: number;
   currency: Currency;
   onChangeCurrency: (c: Currency) => void;
+  onPrevMonth: () => void;
+  onNextMonth: () => void;
+  prevLabel: string;
+  nextLabel: string;
   highlight?: { name: string; amount: number; currency: Currency };
 }) {
   const [main, frac] = formatMoney(total, currency)
@@ -24,8 +33,26 @@ export function TotalBanner({
   return (
     <div className="relative px-4 pb-5 pt-1">
       <div className="text-center">
-        <div className="mb-2 text-[15px] font-medium tracking-[0.02em] text-white/50 sm:text-[16px]">
-          {monthLabel}
+        <div className="mb-2 flex min-w-0 items-center justify-center gap-0.5">
+          <button
+            type="button"
+            onClick={onPrevMonth}
+            className="iconbtn !h-10 !w-10 shrink-0"
+            aria-label={prevLabel}
+          >
+            <Icon.ChevronLeft />
+          </button>
+          <div className="min-w-0 flex-1 font-display text-[1.4rem] italic leading-tight text-white/90 sm:text-2xl">
+            {monthLabel}
+          </div>
+          <button
+            type="button"
+            onClick={onNextMonth}
+            className="iconbtn !h-10 !w-10 shrink-0"
+            aria-label={nextLabel}
+          >
+            <Icon.ChevronRight />
+          </button>
         </div>
         <motion.div
           key={total.toFixed(2) + currency}

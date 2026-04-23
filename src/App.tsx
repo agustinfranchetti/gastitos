@@ -19,10 +19,11 @@ import { useAuth } from "./lib/useAuth";
 import { useI18n } from "./lib/i18n";
 import { PwaUpdateChip } from "./components/PwaUpdateChip";
 import { usePwaUpdate } from "./lib/usePwaUpdate";
+import { MonthYearPickerSheet } from "./components/MonthYearPickerSheet";
 
 export default function App() {
   useAuth();
-  const { t, formatMonth, formatShortDay, dateLocale } = useI18n();
+  const { t, formatMonth, formatShortDay } = useI18n();
   const { needRefresh, applyUpdate, dismiss } = usePwaUpdate();
 
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
@@ -33,6 +34,7 @@ export default function App() {
   const [day, setDay] = useState<Date | null>(null);
   const [metricsOpen, setMetricsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [monthPickerOpen, setMonthPickerOpen] = useState(false);
 
   const settings = useSettings();
   const subs = useSubscriptions();
@@ -114,9 +116,7 @@ export default function App() {
         />
       )}
       <Header
-        monthLabel={format(month, "MMM yyyy", { locale: dateLocale })}
-        onPrev={() => setMonth(subMonths(month, 1))}
-        onNext={() => setMonth(addMonths(month, 1))}
+        onOpenMonthPicker={() => setMonthPickerOpen(true)}
         onMetrics={() => setMetricsOpen(true)}
         onSettings={() => setSettingsOpen(true)}
         t={t}
@@ -128,6 +128,10 @@ export default function App() {
           total={total}
           currency={currency}
           onChangeCurrency={setDisplayCurrency}
+          onPrevMonth={() => setMonth(subMonths(month, 1))}
+          onNextMonth={() => setMonth(addMonths(month, 1))}
+          prevLabel={t("header.prevMonth")}
+          nextLabel={t("header.nextMonth")}
           highlight={highlight}
         />
 
@@ -200,60 +204,54 @@ export default function App() {
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
       />
+
+      <MonthYearPickerSheet
+        open={monthPickerOpen}
+        onClose={() => setMonthPickerOpen(false)}
+        value={month}
+        onChange={(d) => setMonth(startOfMonth(d))}
+      />
     </div>
   );
 }
 
 function Header({
-  monthLabel,
-  onPrev,
-  onNext,
+  onOpenMonthPicker,
   onMetrics,
   onSettings,
   t,
 }: {
-  monthLabel: string;
-  onPrev: () => void;
-  onNext: () => void;
+  onOpenMonthPicker: () => void;
   onMetrics: () => void;
   onSettings: () => void;
   t: (k: string) => string;
 }) {
   return (
     <header className="sticky top-0 z-20 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top),12px)] pb-2 backdrop-blur-md">
-      <div className="flex items-center gap-0.5 text-white/70">
+      <button
+        type="button"
+        onClick={onOpenMonthPicker}
+        className="iconbtn-header shrink-0"
+        aria-label={t("header.pickMonth")}
+      >
+        <Icon.Calendar className="!h-6 !w-6" />
+      </button>
+      <div className="flex items-center gap-2.5">
         <button
-          onClick={onPrev}
-          className="iconbtn"
-          aria-label={t("header.prevMonth")}
-        >
-          <Icon.ChevronLeft />
-        </button>
-        <div className="px-2 font-display italic text-[15px] text-white/80">
-          {monthLabel}
-        </div>
-        <button
-          onClick={onNext}
-          className="iconbtn"
-          aria-label={t("header.nextMonth")}
-        >
-          <Icon.ChevronRight />
-        </button>
-      </div>
-      <div className="flex items-center gap-1.5">
-        <button
-          className="iconbtn"
+          type="button"
+          className="iconbtn-header"
           onClick={onMetrics}
           aria-label={t("header.metrics")}
         >
-          <Icon.Chart />
+          <Icon.Chart className="!h-6 !w-6" />
         </button>
         <button
-          className="iconbtn"
+          type="button"
+          className="iconbtn-header"
           onClick={onSettings}
           aria-label={t("header.settings")}
         >
-          <Icon.Gear />
+          <Icon.Gear className="!h-6 !w-6" />
         </button>
       </div>
     </header>

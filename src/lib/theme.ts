@@ -1,4 +1,4 @@
-import type { AccentPreset, Appearance } from "./types";
+import type { AccentPreset, Settings } from "./types";
 
 /** Dots in settings accent row */
 export const ACCENT_PICKER_STYLE: Record<AccentPreset, string> = {
@@ -31,7 +31,6 @@ const ACCENT_PRESET_VARS: Record<
     "accent-700": [number, number, number];
   }
 > = {
-  /** Pure UI orange (Tailwind orange scale) */
   orange: {
     "accent-50": [255, 247, 237],
     "accent-100": [255, 237, 213],
@@ -88,6 +87,14 @@ function rgbTuple([r, g, b]: [number, number, number]) {
   return `${r} ${g} ${b}`;
 }
 
+/** App is always dark; `dark:` Tailwind + CSS vars for accent. */
+export function applyDarkToDocument() {
+  const root = document.documentElement;
+  root.setAttribute("data-theme", "dark");
+  root.classList.add("dark");
+  root.style.colorScheme = "dark";
+}
+
 export function applyAccentToDocument(preset: AccentPreset) {
   const v = ACCENT_PRESET_VARS[preset];
   const root = document.documentElement;
@@ -97,44 +104,11 @@ export function applyAccentToDocument(preset: AccentPreset) {
   root.setAttribute("data-accent", preset);
 }
 
-function resolveAppearance(appearance: Appearance | undefined): "dark" | "light" {
-  if (appearance === "light" || appearance === "dark") return appearance;
-  if (typeof window === "undefined" || !window.matchMedia) return "dark";
-  return window.matchMedia("(prefers-color-scheme: light)").matches
-    ? "light"
-    : "dark";
-}
-
-let appearanceListener: (() => void) | null = null;
-
-export function applyAppearanceToDocument(appearance: Appearance | undefined) {
-  const next = resolveAppearance(appearance);
-  if (next === "light") {
-    document.documentElement.setAttribute("data-theme", "light");
-    document.documentElement.classList.remove("dark");
-  } else {
-    document.documentElement.setAttribute("data-theme", "dark");
-    document.documentElement.classList.add("dark");
+export function syncDocumentAccentFromSettings(s: Settings | null | undefined) {
+  applyDarkToDocument();
+  if (!s) {
+    applyAccentToDocument("orange");
+    return;
   }
-  document.documentElement.style.colorScheme = next;
-
-  if (appearance === "system") {
-    if (!appearanceListener) {
-      appearanceListener = () => applyAppearanceToDocument("system");
-      window
-        .matchMedia("(prefers-color-scheme: light)")
-        .addEventListener("change", appearanceListener);
-    }
-  } else if (appearanceListener) {
-    window
-      .matchMedia("(prefers-color-scheme: light)")
-      .removeEventListener("change", appearanceListener);
-    appearanceListener = null;
-  }
-}
-
-export function getResolvedAppearance(
-  appearance: Appearance | undefined,
-): "light" | "dark" {
-  return resolveAppearance(appearance);
+  applyAccentToDocument(s.accentPreset ?? "orange");
 }

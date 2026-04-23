@@ -3,7 +3,7 @@ import {
   motion,
   useDragControls,
 } from "framer-motion";
-import { type ReactNode, useEffect } from "react";
+import { type CSSProperties, type ReactNode, useEffect } from "react";
 
 export function Sheet({
   open,
@@ -48,8 +48,12 @@ export function Sheet({
             role="dialog"
             aria-modal="true"
             aria-label="Panel"
-            className="sheet touch-manipulation w-full max-w-full overflow-x-hidden"
-            style={{ maxHeight }}
+            className="sheet flex touch-manipulation h-[var(--sheet-h)] max-h-[var(--sheet-h)] min-h-[var(--sheet-h)] w-full max-w-full flex-col overflow-hidden"
+            style={
+              {
+                "--sheet-h": maxHeight,
+              } as CSSProperties
+            }
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
@@ -67,11 +71,10 @@ export function Sheet({
               className="flex shrink-0 cursor-grab touch-none flex-col items-center pb-1 pt-2 active:cursor-grabbing"
               onPointerDown={(e) => dragControls.start(e)}
             >
-              <div className="h-1.5 w-10 rounded-full bg-white/25" />
+              <div className="h-1.5 w-10 rounded-full bg-zinc-300/80 dark:bg-white/25" />
             </div>
             <div
-              className="sheet-scroll relative min-w-0 max-w-full overflow-x-hidden overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]"
-              style={{ maxHeight: `calc(${maxHeight} - 52px)` }}
+              className="sheet-scroll relative min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]"
             >
               {children}
             </div>

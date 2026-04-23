@@ -47,15 +47,9 @@ export async function ensureSeed() {
       language: "en",
       primaryCurrency: "ARS",
       notificationsEnabled: false,
-      appearance: "dark",
     });
-  } else {
-    if (!s.language) {
-      await db.settings.update("singleton", { language: "en" });
-    }
-    if (s.appearance == null) {
-      await db.settings.update("singleton", { appearance: "dark" });
-    }
+  } else if (!s.language) {
+    await db.settings.update("singleton", { language: "en" });
   }
   const peopleCount = await db.people.count();
   if (peopleCount === 0) {

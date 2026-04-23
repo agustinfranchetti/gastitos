@@ -20,7 +20,7 @@ import { useI18n } from "./lib/i18n";
 import { PwaUpdateChip } from "./components/PwaUpdateChip";
 import { usePwaUpdate } from "./lib/usePwaUpdate";
 import { MonthYearPickerSheet } from "./components/MonthYearPickerSheet";
-import { applyAccentToDocument, applyAppearanceToDocument } from "./lib/theme";
+import { syncDocumentAccentFromSettings } from "./lib/theme";
 
 export default function App() {
   useAuth();
@@ -46,14 +46,15 @@ export default function App() {
   }, []);
 
   useLayoutEffect(() => {
-    if (!settings) {
-      applyAccentToDocument("orange");
-      // Until IndexedDB loads, follow system (so light mode is not stuck on <html class="dark">)
-      applyAppearanceToDocument(undefined);
-      return;
-    }
-    applyAccentToDocument(settings.accentPreset ?? "orange");
-    applyAppearanceToDocument(settings.appearance);
+    let cancelled = false;
+    void (async () => {
+      const s = await db.settings.get("singleton");
+      if (cancelled) return;
+      syncDocumentAccentFromSettings(s ?? null);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [settings]);
 
   // Auto-fetch FX on first load (and refresh if older than 6h).
@@ -120,7 +121,7 @@ export default function App() {
   }
 
   return (
-    <div className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col bg-stone-100 pb-28 dark:bg-[#0a0806]">
+    <div className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col bg-[#0a0806] pb-28">
       {needRefresh && (
         <PwaUpdateChip
           onUpdate={() => void applyUpdate()}
@@ -239,7 +240,7 @@ function Header({
   t: (k: string) => string;
 }) {
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between border-b border-zinc-200/80 bg-stone-100/80 px-4 pb-2 pt-[max(env(safe-area-inset-top),12px)] backdrop-blur-md dark:border-transparent dark:bg-black/20">
+    <header className="sticky top-0 z-20 flex items-center justify-between border-b border-transparent bg-black/20 px-4 pb-2 pt-[max(env(safe-area-inset-top),12px)] backdrop-blur-md">
       <button
         type="button"
         onClick={onOpenMonthPicker}

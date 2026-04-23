@@ -54,11 +54,7 @@ const es = {
   settings: {
     title: "Ajustes",
     back: "Atrás",
-    lookAndFeel: "Apariencia",
-    appearance: "Tema",
-    appearanceDark: "Oscuro",
-    appearanceLight: "Claro",
-    appearanceSystem: "Sistema",
+    lookAndFeel: "Color y cifras",
     accent: "Color principal",
     compactAmounts: "Cifras abreviadas (K / M)",
     compactAmountsHelp:

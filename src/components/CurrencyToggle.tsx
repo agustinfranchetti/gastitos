@@ -8,7 +8,7 @@ export function CurrencyToggle({
   onChange: (c: Currency) => void;
 }) {
   return (
-    <div className="inline-flex items-center rounded-full border border-white/[0.06] bg-white/[0.02] p-0.5 text-[11px]">
+    <div className="inline-flex items-center rounded-full border border-white/[0.08] bg-white/[0.04] p-0.5 text-[11px]">
       {CURRENCIES.map((c) => {
         const active = c === value;
         return (
@@ -17,8 +17,8 @@ export function CurrencyToggle({
             onClick={() => onChange(c)}
             className={`rounded-full px-2.5 py-1 font-medium tracking-wide transition-colors ${
               active
-                ? "bg-zinc-200 text-zinc-900 dark:bg-white/10 dark:text-white"
-                : "text-zinc-500 dark:text-white/40"
+                ? "bg-white/10 text-white"
+                : "text-white/40"
             }`}
             aria-pressed={active}
           >

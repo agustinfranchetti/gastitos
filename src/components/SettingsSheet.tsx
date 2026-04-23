@@ -1,11 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Sheet } from "./Sheet";
 import { Icon } from "./Icons";
 import { db } from "../lib/db";
 import { supabase, supabaseEnabled } from "../lib/supabase";
 import { useAuth } from "../lib/useAuth";
 import { fetchFxRates } from "../lib/money";
-import { ACCENT_PICKER_STYLE, ACCENT_PRESET_ORDER } from "../lib/theme";
+import {
+  ACCENT_PICKER_STYLE,
+  ACCENT_PRESET_ORDER,
+  syncDocumentAccentFromSettings,
+} from "../lib/theme";
 import type { Category, Currency, Person, Settings } from "../lib/types";
 import { CURRENCIES } from "../lib/types";
 import { useCategories, usePeople, useSettings } from "../lib/hooks";
@@ -48,6 +52,8 @@ export function SettingsSheet({
 
   async function patch(p: Partial<Settings>) {
     await db.settings.update("singleton", p);
+    const s = await db.settings.get("singleton");
+    syncDocumentAccentFromSettings(s);
   }
 
   async function refreshFx() {
@@ -109,35 +115,43 @@ export function SettingsSheet({
             <nav className="flex flex-col gap-1.5" aria-label={t("settings.title")}>
               {supabaseEnabled && (
                 <SettingsMenuButton
+                  icon={<Icon.User className="!h-[18px] !w-[18px]" />}
                   label={t("settings.account")}
                   onClick={() => setView("account")}
                 />
               )}
               <SettingsMenuButton
+                icon={<Icon.Swatch className="!h-[18px] !w-[18px]" />}
                 label={t("settings.lookAndFeel")}
                 onClick={() => setView("appearance")}
               />
               <SettingsMenuButton
+                icon={<Icon.Globe className="!h-[18px] !w-[18px]" />}
                 label={t("settings.language")}
                 onClick={() => setView("language")}
               />
               <SettingsMenuButton
+                icon={<Icon.Coins className="!h-[18px] !w-[18px]" />}
                 label={t("settings.currency")}
                 onClick={() => setView("currency")}
               />
               <SettingsMenuButton
+                icon={<Icon.Rocket className="!h-[18px] !w-[18px]" />}
                 label={t("settings.logoDev")}
                 onClick={() => setView("logo")}
               />
               <SettingsMenuButton
+                icon={<Icon.Bell className="!h-[18px] !w-[18px]" />}
                 label={t("settings.notifications")}
                 onClick={() => setView("notifications")}
               />
               <SettingsMenuButton
+                icon={<Icon.Users className="!h-[18px] !w-[18px]" />}
                 label={t("settings.people")}
                 onClick={() => setView("people")}
               />
               <SettingsMenuButton
+                icon={<Icon.Tag className="!h-[18px] !w-[18px]" />}
                 label={t("settings.categories")}
                 onClick={() => setView("categories")}
               />
@@ -171,37 +185,6 @@ export function SettingsSheet({
             {view === "appearance" && (
               <div className="space-y-3">
                 <div className="tile space-y-4 p-4">
-                  <Row label={t("settings.appearance")}>
-                    <div className="flex max-w-full flex-wrap justify-end gap-2">
-                      {(
-                        [
-                          { id: "dark" as const, label: t("settings.appearanceDark") },
-                          { id: "light" as const, label: t("settings.appearanceLight") },
-                          {
-                            id: "system" as const,
-                            label: t("settings.appearanceSystem"),
-                          },
-                        ] as const
-                      ).map(({ id, label }) => {
-                        const active = (settings.appearance ?? "dark") === id;
-                        return (
-                          <button
-                            key={id}
-                            type="button"
-                            onClick={() => patch({ appearance: id })}
-                            className={`shrink-0 rounded-full border px-3 py-1.5 text-sm transition-colors ${
-                              active
-                                ? "accent-segment-active"
-                                : "border-zinc-200 bg-white/80 text-zinc-600 dark:border-white/10 dark:bg-white/[0.02] dark:text-white/70"
-                            }`}
-                            aria-pressed={active}
-                          >
-                            {label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </Row>
                   <Row label={t("settings.accent")}>
                     <div className="flex max-w-full flex-wrap items-center justify-end gap-2">
                       {ACCENT_PRESET_ORDER.map((id) => {
@@ -376,18 +359,30 @@ export function SettingsSheet({
 
 function SettingsMenuButton({
   label,
+  icon,
   onClick,
 }: {
   label: string;
+  icon: ReactNode;
   onClick: () => void;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full min-w-0 max-w-full items-center justify-between gap-3 overflow-hidden rounded-xl border border-zinc-200/90 bg-white/90 px-4 py-3.5 text-left text-sm text-zinc-800 shadow-sm active:bg-zinc-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/90 dark:shadow-none dark:active:bg-white/8"
+      className="flex w-full min-w-0 max-w-full items-center justify-between gap-3 overflow-hidden rounded-xl border border-zinc-200/90 bg-white/90 px-3 py-3.5 text-left text-sm text-zinc-800 shadow-sm active:bg-zinc-100 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/90 dark:shadow-none dark:active:bg-white/8"
     >
-      <span className="min-w-0 flex-1 truncate font-medium">{label}</span>
+      <span className="flex min-w-0 flex-1 items-center gap-3">
+        <span
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-zinc-200/80 bg-stone-50 text-zinc-700 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/90"
+          aria-hidden
+        >
+          {icon}
+        </span>
+        <span className="min-w-0 flex-1 truncate font-medium leading-snug">
+          {label}
+        </span>
+      </span>
       <Icon.ChevronRight className="h-4 w-4 shrink-0 text-zinc-400 dark:text-white/35" />
     </button>
   );

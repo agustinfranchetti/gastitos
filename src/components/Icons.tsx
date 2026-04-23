@@ -91,4 +91,35 @@ export const Icon = {
       <path d="M21 12H9" />
     </>,
   ),
+  /** Look & feel / theme */
+  Swatch: mk(
+    <>
+      <rect x="4" y="5" width="4.5" height="14" rx="1" />
+      <rect x="10" y="3" width="4.5" height="18" rx="1" />
+      <rect x="16" y="7" width="4" height="12" rx="1" />
+    </>,
+  ),
+  Globe: mk(
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3a15 15 0 0 0 0 18M12 3a15 15 0 0 1 0 18" />
+    </>,
+  ),
+  /** Currency / money */
+  Coins: mk(
+    <>
+      <circle cx="8" cy="8" r="5" />
+      <path d="M16 9.5a5 5 0 0 0-2.1-2.1M18.5 15a5 5 0 0 0-1.1-1.1" />
+      <circle cx="16" cy="16" r="5" />
+    </>,
+  ),
+  /** People (multiple) */
+  Users: mk(
+    <>
+      <path d="M16 21v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-1a4 4 0 0 0-2.3-3.6" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </>,
+  ),
 };

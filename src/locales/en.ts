@@ -53,11 +53,7 @@ const en = {
   settings: {
     title: "Settings",
     back: "Back",
-    lookAndFeel: "Look & feel",
-    appearance: "Theme",
-    appearanceDark: "Dark",
-    appearanceLight: "Light",
-    appearanceSystem: "System",
+    lookAndFeel: "Color & display",
     accent: "Accent",
     compactAmounts: "Short amounts (K / M)",
     compactAmountsHelp:

@@ -10,6 +10,7 @@ import { AnimatePresence, motion, type PanInfo } from "framer-motion";
 import { Logo } from "./Logo";
 import type { Subscription } from "../lib/types";
 import { paymentsInMonth } from "../lib/billing";
+import { useI18n } from "../lib/i18n";
 
 type DayCell = { date: Date; subs: Subscription[] };
 
@@ -49,7 +50,8 @@ export function CalendarGrid({
     subs: cellsByDate.get(format(d, "yyyy-MM-dd")) ?? [],
   }));
 
-  const labels = ["M", "T", "W", "T", "F", "S", "S"];
+  const { weekdayRow } = useI18n();
+  const labels = weekdayRow();
   const monthKey = format(month, "yyyy-MM");
 
   function handleDragEnd(_: unknown, info: PanInfo) {

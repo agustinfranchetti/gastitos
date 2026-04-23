@@ -1,3 +1,5 @@
+export type AppLocale = "en" | "es";
+
 export type Currency = "USD" | "EUR" | "ARS";
 
 export const CURRENCIES: Currency[] = ["ARS", "USD", "EUR"];
@@ -69,6 +71,8 @@ export interface FxRates {
 
 export interface Settings {
   id: "singleton";
+  /** UI language. Defaults to English if missing. */
+  language?: AppLocale;
   primaryCurrency: Currency;
   logoDevKey?: string;
   fx?: FxRates;

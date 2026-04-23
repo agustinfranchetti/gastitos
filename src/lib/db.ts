@@ -44,9 +44,12 @@ export async function ensureSeed() {
   if (!s) {
     await db.settings.put({
       id: "singleton",
+      language: "en",
       primaryCurrency: "ARS",
       notificationsEnabled: false,
     });
+  } else if (!s.language) {
+    await db.settings.update("singleton", { language: "en" });
   }
   const peopleCount = await db.people.count();
   if (peopleCount === 0) {

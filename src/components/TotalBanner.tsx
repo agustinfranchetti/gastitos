@@ -1,17 +1,16 @@
 import { motion } from "framer-motion";
-import { format } from "date-fns";
 import type { Currency } from "../lib/types";
 import { formatMoney, symbol } from "../lib/money";
 import { CurrencyToggle } from "./CurrencyToggle";
 
 export function TotalBanner({
-  month,
+  monthLabel,
   total,
   currency,
   onChangeCurrency,
   highlight,
 }: {
-  month: Date;
+  monthLabel: string;
   total: number;
   currency: Currency;
   onChangeCurrency: (c: Currency) => void;
@@ -26,7 +25,7 @@ export function TotalBanner({
     <div className="relative px-4 pb-4 pt-3">
       <div className="text-center">
         <div className="mb-1 text-[12px] font-medium tracking-wide text-white/40">
-          {format(month, "MMMM yyyy")}
+          {monthLabel}
         </div>
         <motion.div
           key={total.toFixed(2) + currency}

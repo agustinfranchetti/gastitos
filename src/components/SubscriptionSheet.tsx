@@ -14,6 +14,7 @@ import {
 import { formatMoney } from "../lib/money";
 import type { Subscription } from "../lib/types";
 import { useCategories, usePeople } from "../lib/hooks";
+import { useI18n } from "../lib/i18n";
 import { newId } from "../lib/id";
 
 export function SubscriptionSheet({
@@ -27,6 +28,7 @@ export function SubscriptionSheet({
   onClose: () => void;
   onEdit: (s: Subscription) => void;
 }) {
+  const { t, cycle, dateLocale } = useI18n();
   const people = usePeople();
   const cats = useCategories();
   const [raiseOpen, setRaiseOpen] = useState(false);
@@ -72,7 +74,7 @@ export function SubscriptionSheet({
 
   async function remove() {
     if (!sub) return;
-    if (!confirm(`Delete ${sub.name}?`)) return;
+    if (!confirm(t("subscription.deleteConfirm", { name: sub.name }))) return;
     await db.subscriptions.delete(sub.id);
     onClose();
   }
@@ -90,13 +92,13 @@ export function SubscriptionSheet({
                 sub.active ? "bg-emerald-400" : "bg-white/30"
               }`}
             />
-            {sub.active ? "Active" : "Paused"}
+            {sub.active ? t("subscription.active") : t("subscription.paused")}
           </button>
           <button
             onClick={() => onEdit(sub)}
             className="text-xs text-white/60 active:text-white"
           >
-            Edit
+            {t("subscription.edit")}
           </button>
         </div>
         <Logo sub={sub} token={token} size={64} rounded={16} />
@@ -104,63 +106,80 @@ export function SubscriptionSheet({
           {sub.name}
         </div>
         <div className="text-[13px] text-white/50">
-          {capitalize(sub.cycle)} · {money(curPrice)}
+          {t("subscription.planLine", {
+            cycle: cycle(sub.cycle),
+            amount: money(curPrice),
+          })}
         </div>
       </div>
 
       <div className="divide-y divide-white/[0.04] overflow-hidden rounded-xl border border-white/[0.05] bg-white/[0.02]">
         <Row
-          label="Amount"
+          label={t("subscription.amount")}
           value={money(curPrice)}
           rightBadge={
-            sub.raises?.length ? `+${sub.raises.length} raises` : undefined
+            sub.raises?.length
+              ? t("subscription.raisesBadge", { n: sub.raises.length })
+              : undefined
           }
           onClick={() => setRaiseOpen(true)}
           tappable
         />
         <Row
-          label="Next payment"
-          value={next ? format(next, "d MMM yyyy") : "Ended"}
+          label={t("subscription.nextPayment")}
+          value={
+            next
+              ? format(next, "d MMM yyyy", { locale: dateLocale })
+              : t("subscription.ended")
+          }
         />
         {remaining !== null && (
           <Row
-            label="Payments left"
-            value={`${remaining} of ${sub.totalPayments}`}
+            label={t("subscription.paymentsLeft")}
+            value={t("subscription.paymentsLeftValue", {
+              n: remaining,
+              m: sub.totalPayments ?? 0,
+            })}
           />
         )}
         <Row
-          label="Total spent"
+          label={t("subscription.totalSpent")}
           value={estimateSpent(sub, today, (n) => money(n))}
         />
-        <Row label="Yearly equivalent" value={money(yearly)} />
         <Row
-          label="Category"
-          value={cat?.name ?? "Uncategorized"}
+          label={t("subscription.yearlyEq")}
+          value={money(yearly)}
+        />
+        <Row
+          label={t("subscription.category")}
+          value={cat?.name ?? t("metrics.uncategorized")}
           rightColor={cat?.color}
         />
         <Row
-          label="Person"
+          label={t("subscription.person")}
           value={person ? `${person.emoji ?? "•"} ${person.name}` : "—"}
         />
         <Row
-          label="Notifications"
+          label={t("subscription.notifications")}
           value={
             sub.notify?.filter((n) => n.enabled).length
-              ? `${sub.notify.filter((n) => n.enabled).length} enabled`
-              : "Off"
+              ? t("subscription.notifyCount", {
+                  n: sub.notify.filter((n) => n.enabled).length,
+                })
+              : t("subscription.notifyOff")
           }
         />
       </div>
 
       <div className="mt-4 flex gap-2">
         <button onClick={remove} className="btn-ghost flex-1">
-          <Icon.Trash /> Delete
+          <Icon.Trash /> {t("subscription.delete")}
         </button>
         <button
           onClick={() => setRaiseOpen(true)}
           className="btn-primary flex-1"
         >
-          <Icon.Rocket /> Add a raise
+          <Icon.Rocket /> {t("subscription.addRaise")}
         </button>
       </div>
 
@@ -216,10 +235,6 @@ function Row({
   );
 }
 
-function capitalize(s: string) {
-  return s[0]?.toUpperCase() + s.slice(1);
-}
-
 function estimateSpent(
   sub: Subscription,
   today: Date,
@@ -260,6 +275,7 @@ function RaiseSheet({
   formatMoneyWithCode: (n: number) => string;
   onClose: () => void;
 }) {
+  const { t, dateLocale } = useI18n();
   const [mode, setMode] = useState<"percent" | "fixed">("percent");
   const [percent, setPercent] = useState<string>("10");
   const [newPrice, setNewPrice] = useState<string>("");
@@ -297,10 +313,12 @@ function RaiseSheet({
 
   return (
     <Sheet open={open} onClose={onClose}>
-      <div className="mb-2 font-display text-2xl">Add a raise</div>
+      <div className="mb-2 font-display text-2xl">{t("raise.title")}</div>
       <p className="mb-4 text-sm text-white/60">
-        For <span className="text-white/90">{sub.name}</span>, currently{" "}
-        {formatMoneyWithCode(currentPrice)}.
+        {t("raise.forLine", {
+          name: sub.name,
+          amount: formatMoneyWithCode(currentPrice),
+        })}
       </p>
 
       <div className="mb-4 inline-flex rounded-full border border-white/10 bg-black/30 p-1 text-xs">
@@ -312,14 +330,14 @@ function RaiseSheet({
               mode === m ? "bg-ember-500 text-black" : "text-white/70"
             }`}
           >
-            {m === "percent" ? "By percentage" : "Set new price"}
+            {m === "percent" ? t("raise.byPercent") : t("raise.newPrice")}
           </button>
         ))}
       </div>
 
       <div className="space-y-3">
         {mode === "percent" ? (
-          <Field label="Percent increase">
+          <Field label={t("raise.percent")}>
             <div className="flex items-center">
               <input
                 className="field"
@@ -332,7 +350,7 @@ function RaiseSheet({
             </div>
           </Field>
         ) : (
-          <Field label={`New price (${sub.currency})`}>
+          <Field label={t("raise.newPriceField", { ccy: sub.currency })}>
             <input
               className="field"
               type="number"
@@ -343,7 +361,7 @@ function RaiseSheet({
             />
           </Field>
         )}
-        <Field label="Effective from">
+        <Field label={t("raise.effective")}>
           <input
             className="field"
             type="date"
@@ -352,12 +370,12 @@ function RaiseSheet({
             onChange={(e) => setDate(e.target.value)}
           />
         </Field>
-        <Field label="Note (optional)">
+        <Field label={t("raise.note")}>
           <input
             className="field"
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Inflation adjustment"
+            placeholder={t("raise.notePh")}
           />
         </Field>
       </div>
@@ -365,23 +383,25 @@ function RaiseSheet({
       <div className="mt-5 flex items-center justify-between rounded-2xl border border-ember-400/30 bg-ember-400/10 px-4 py-3">
         <div>
           <div className="text-xs uppercase tracking-wider text-ember-200/80">
-            New price
+            {t("raise.newPriceStat")}
           </div>
           <div className="font-display text-2xl text-white">
             {formatMoneyWithCode(preview || 0)}
           </div>
         </div>
         <div className="text-right text-xs text-white/60">
-          from {format(parseISO(date), "d MMM yyyy")}
+          {t("raise.fromLine", {
+            date: format(parseISO(date), "d MMM yyyy", { locale: dateLocale }),
+          })}
         </div>
       </div>
 
       <div className="mt-5 flex gap-2">
         <button onClick={onClose} className="btn-ghost flex-1">
-          Cancel
+          {t("raise.cancel")}
         </button>
         <button onClick={save} className="btn-primary flex-1">
-          <Icon.Check /> Save raise
+          <Icon.Check /> {t("raise.save")}
         </button>
       </div>
     </Sheet>

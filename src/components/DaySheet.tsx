@@ -1,10 +1,11 @@
-import { format, isSameDay } from "date-fns";
+import { isSameDay } from "date-fns";
 import { Sheet } from "./Sheet";
 import { Logo } from "./Logo";
 import { Icon } from "./Icons";
 import type { Subscription } from "../lib/types";
 import { paymentsInMonth, priceOn } from "../lib/billing";
 import { formatMoney } from "../lib/money";
+import { useI18n } from "../lib/i18n";
 
 export function DaySheet({
   date,
@@ -21,6 +22,7 @@ export function DaySheet({
   onPickSub: (s: Subscription) => void;
   onAddNew: (date: Date) => void;
 }) {
+  const { t, formatWeekday, formatDayAndMonth, cycle } = useI18n();
   if (!date) return null;
 
   const items = subs.filter((s) =>
@@ -32,16 +34,18 @@ export function DaySheet({
       <div className="mb-4 flex items-end justify-between">
         <div>
           <div className="text-[11px] uppercase tracking-[0.2em] text-white/40">
-            {format(date, "EEEE")}
+            {formatWeekday(date)}
           </div>
           <div className="font-display text-3xl leading-none">
-            {format(date, "d MMM")}
+            {formatDayAndMonth(date)}
           </div>
         </div>
         <div className="text-xs text-white/40">
-          {items.length
-            ? `${items.length} subscription${items.length === 1 ? "" : "s"}`
-            : "Nothing due"}
+          {items.length === 0
+            ? t("daySheet.nothingDue")
+            : items.length === 1
+              ? t("daySheet.subscription_one")
+              : t("daySheet.subscription_other", { n: items.length })}
         </div>
       </div>
 
@@ -57,7 +61,7 @@ export function DaySheet({
               <div className="flex-1">
                 <div className="text-sm">{s.name}</div>
                 <div className="text-[11px] text-white/40">
-                  {capitalize(s.cycle)}
+                  {cycle(s.cycle)}
                 </div>
               </div>
               <div className="font-display text-[17px]">
@@ -72,12 +76,8 @@ export function DaySheet({
         onClick={() => onAddNew(date)}
         className="flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-3 text-sm active:bg-white/10"
       >
-        <Icon.Plus /> Add subscription for this day
+        <Icon.Plus /> {t("daySheet.addThisDay")}
       </button>
     </Sheet>
   );
-}
-
-function capitalize(s: string) {
-  return s[0]?.toUpperCase() + s.slice(1);
 }

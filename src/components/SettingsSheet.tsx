@@ -14,6 +14,7 @@ import type {
 import { CURRENCIES } from "../lib/types";
 import { useCategories, usePeople, useSettings } from "../lib/hooks";
 import { newId } from "../lib/id";
+import { useI18n } from "../lib/i18n";
 import { requestNotificationPermission } from "../lib/notify";
 import { Select, Toggle } from "./EditSubscriptionSheet";
 
@@ -29,6 +30,7 @@ export function SettingsSheet({
   const cats = useCategories();
   const [fxLoading, setFxLoading] = useState(false);
   const [fxError, setFxError] = useState<string | null>(null);
+  const { t } = useI18n();
 
   if (!settings) return null;
 
@@ -61,57 +63,90 @@ export function SettingsSheet({
   return (
     <Sheet open={open} onClose={onClose} maxHeight="92vh">
       <div className="mb-4 flex items-center justify-between">
-        <div className="font-display text-2xl">Settings</div>
-        <button onClick={onClose} className="iconbtn">
+        <div className="font-display text-2xl">{t("settings.title")}</div>
+        <button onClick={onClose} className="iconbtn" aria-label="close">
           <Icon.X />
         </button>
       </div>
 
+      <Section title={t("settings.language")}>
+        <div className="flex flex-wrap gap-2">
+          {(
+            [
+              { code: "en" as const, flag: "🇬🇧", label: t("settings.languageEn") },
+              { code: "es" as const, flag: "🇪🇸", label: t("settings.languageEs") },
+            ] as const
+          ).map(({ code, flag, label }) => {
+            const active = (settings.language ?? "en") === code;
+            return (
+              <button
+                key={code}
+                type="button"
+                onClick={() => patch({ language: code })}
+                className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm transition-colors ${
+                  active
+                    ? "border-ember-400/50 bg-ember-400/15 text-white"
+                    : "border-white/10 bg-white/[0.02] text-white/70"
+                }`}
+                aria-pressed={active}
+              >
+                <span className="text-lg leading-none" aria-hidden>
+                  {flag}
+                </span>
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </Section>
+
       {supabaseEnabled && <AccountSection />}
 
-      <Section title="Currency">
+      <Section title={t("settings.currency")}>
         <div className="space-y-3">
-          <Row label="Primary">
+          <Row label={t("settings.primary")}>
             <Select
               value={settings.primaryCurrency}
               onChange={(v) => patch({ primaryCurrency: v as Currency })}
               options={CURRENCIES.map((c) => ({ value: c, label: c }))}
             />
           </Row>
-          <Row label="FX rates">
+          <Row label={t("settings.fx")}>
             <div className="flex items-center gap-2">
               <span className="text-xs text-white/50">
                 {settings.fx?.fetchedAt
                   ? new Date(settings.fx.fetchedAt).toLocaleString()
-                  : "never"}
+                  : t("common.never")}
               </span>
               <button
                 onClick={refreshFx}
                 disabled={fxLoading}
                 className="btn-ghost !py-1.5 text-xs"
               >
-                {fxLoading ? "…" : "Refresh"}
+                {fxLoading ? t("settings.busy") : t("settings.refresh")}
               </button>
             </div>
           </Row>
           {fxError && (
-            <div className="text-xs text-red-400">FX error: {fxError}</div>
+            <div className="text-xs text-red-400">
+              {t("settings.fxError")} {fxError}
+            </div>
           )}
         </div>
       </Section>
 
-      <Section title="Logo.dev">
-        <Row label="API key">
+      <Section title={t("settings.logoDev")}>
+        <Row label={t("settings.apiKey")}>
           <input
             className="field"
             type="password"
-            placeholder="pk_..."
+            placeholder={t("settings.keyPlaceholder")}
             value={settings.logoDevKey ?? ""}
             onChange={(e) => patch({ logoDevKey: e.target.value })}
           />
         </Row>
         <p className="mt-2 text-xs text-white/50">
-          Get a free key at{" "}
+          {t("settings.logoKeyLine1")}{" "}
           <a
             className="underline"
             href="https://www.logo.dev/docs/platform/api-keys"
@@ -120,28 +155,27 @@ export function SettingsSheet({
           >
             logo.dev/docs/platform/api-keys
           </a>
-          . Your key stays on this device.
+          {t("settings.logoKeyLine2")}
         </p>
       </Section>
 
-      <Section title="Notifications">
-        <Row label="Enable reminders">
+      <Section title={t("settings.notifications")}>
+        <Row label={t("settings.enableReminders")}>
           <Toggle
             checked={settings.notificationsEnabled}
             onChange={toggleNotifications}
           />
         </Row>
         <p className="mt-2 text-xs text-white/50">
-          Reminders fire the next time you open the app after a threshold is
-          crossed. Up to 3 per subscription.
+          {t("settings.remindHelp")}
         </p>
       </Section>
 
-      <Section title="People">
+      <Section title={t("settings.people")}>
         <PeopleEditor people={people ?? []} />
       </Section>
 
-      <Section title="Categories">
+      <Section title={t("settings.categories")}>
         <CategoriesEditor cats={cats ?? []} />
       </Section>
 
@@ -151,6 +185,7 @@ export function SettingsSheet({
 }
 
 function AccountSection() {
+  const { t } = useI18n();
   const { user } = useAuth();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
@@ -177,34 +212,36 @@ function AccountSection() {
   }
 
   return (
-    <Section title="Account">
+    <Section title={t("settings.account")}>
       {user ? (
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-sm">
             <Icon.Cloud className="text-ember-300" />
             <div>
               <div className="text-white/90">{user.email}</div>
-              <div className="text-[11px] text-white/40">Synced</div>
+              <div className="text-[11px] text-white/40">
+                {t("settings.synced")}
+              </div>
             </div>
           </div>
           <button onClick={signOut} className="btn-ghost !py-1.5 text-xs">
-            <Icon.LogOut /> Sign out
+            <Icon.LogOut /> {t("settings.signOut")}
           </button>
         </div>
       ) : sent ? (
         <div className="text-sm text-white/70">
-          Check <span className="text-white">{email}</span> for a magic link.
+          {t("settings.checkEmail", { email: email })}
         </div>
       ) : (
         <div className="space-y-2">
           <div className="text-[11px] text-white/40">
-            Sign in to sync across devices.
+            {t("settings.signInHint")}
           </div>
           <div className="flex items-center gap-2">
             <input
               className="field flex-1"
               type="email"
-              placeholder="you@domain.com"
+              placeholder={t("settings.emailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -213,7 +250,7 @@ function AccountSection() {
               disabled={busy}
               className="btn-primary !py-2 text-xs"
             >
-              {busy ? "…" : "Send link"}
+              {busy ? t("settings.busy") : t("settings.sendLink")}
             </button>
           </div>
           {err && <div className="text-xs text-red-400">{err}</div>}
@@ -256,6 +293,7 @@ function Row({
 }
 
 function PeopleEditor({ people }: { people: Person[] }) {
+  const { t } = useI18n();
   const [name, setName] = useState("");
   const [emoji, setEmoji] = useState("🙂");
   const [color, setColor] = useState("#7c5cff");
@@ -295,7 +333,7 @@ function PeopleEditor({ people }: { people: Person[] }) {
           <button
             className="iconbtn"
             onClick={() => db.people.delete(p.id)}
-            aria-label="delete"
+            aria-label={t("settings.delete")}
           >
             <Icon.Trash />
           </button>
@@ -304,7 +342,7 @@ function PeopleEditor({ people }: { people: Person[] }) {
       <div className="flex items-center gap-2 pt-1">
         <input
           className="field flex-1"
-          placeholder="Add person…"
+          placeholder={t("settings.addPerson")}
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
@@ -320,7 +358,7 @@ function PeopleEditor({ people }: { people: Person[] }) {
           onChange={(e) => setColor(e.target.value)}
         />
         <button onClick={add} className="btn-primary !py-2 text-xs">
-          Add
+          {t("common.add")}
         </button>
       </div>
     </div>
@@ -328,6 +366,7 @@ function PeopleEditor({ people }: { people: Person[] }) {
 }
 
 function CategoriesEditor({ cats }: { cats: Category[] }) {
+  const { t } = useI18n();
   const [name, setName] = useState("");
   const [color, setColor] = useState("#2dd4bf");
 
@@ -363,7 +402,7 @@ function CategoriesEditor({ cats }: { cats: Category[] }) {
           <button
             className="iconbtn"
             onClick={() => db.categories.delete(c.id)}
-            aria-label="delete"
+            aria-label={t("settings.delete")}
           >
             <Icon.Trash />
           </button>
@@ -372,7 +411,7 @@ function CategoriesEditor({ cats }: { cats: Category[] }) {
       <div className="flex items-center gap-2 pt-1">
         <input
           className="field flex-1"
-          placeholder="Add category…"
+          placeholder={t("settings.addCategory")}
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
@@ -383,7 +422,7 @@ function CategoriesEditor({ cats }: { cats: Category[] }) {
           onChange={(e) => setColor(e.target.value)}
         />
         <button onClick={add} className="btn-primary !py-2 text-xs">
-          Add
+          {t("common.add")}
         </button>
       </div>
     </div>

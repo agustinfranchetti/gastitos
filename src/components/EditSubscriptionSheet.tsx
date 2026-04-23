@@ -14,6 +14,7 @@ import type {
 } from "../lib/types";
 import { CURRENCIES } from "../lib/types";
 import { useCategories, usePeople, useSettings } from "../lib/hooks";
+import { useI18n } from "../lib/i18n";
 
 type Draft = Omit<Subscription, "createdAt" | "updatedAt">;
 
@@ -57,6 +58,7 @@ export function EditSubscriptionSheet({
   const settings = useSettings();
   const people = usePeople();
   const cats = useCategories();
+  const { t, cycle } = useI18n();
   const [draft, setDraft] = useState<Draft>(blank());
 
   useEffect(() => {
@@ -133,7 +135,7 @@ export function EditSubscriptionSheet({
     <Sheet open={open} onClose={onClose}>
       <div className="mb-4 flex items-center justify-between">
         <div className="font-display text-2xl">
-          {initial ? "Edit subscription" : "New subscription"}
+          {initial ? t("editSub.edit") : t("editSub.new")}
         </div>
         <button onClick={onClose} className="iconbtn">
           <Icon.X />
@@ -145,13 +147,13 @@ export function EditSubscriptionSheet({
         <div className="flex-1 space-y-2">
           <input
             className="field text-base"
-            placeholder="Name (e.g. Spotify)"
+            placeholder={t("editSub.namePh")}
             value={draft.name}
             onChange={(e) => setDraft({ ...draft, name: e.target.value })}
           />
           <input
             className="field text-sm"
-            placeholder="Brand domain (e.g. spotify.com)"
+            placeholder={t("editSub.domainPh")}
             value={draft.domain ?? ""}
             onChange={(e) => setDraft({ ...draft, domain: e.target.value })}
           />
@@ -159,7 +161,7 @@ export function EditSubscriptionSheet({
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Price">
+        <Field label={t("editSub.price")}>
           <input
             className="field"
             type="number"
@@ -170,14 +172,14 @@ export function EditSubscriptionSheet({
             }
           />
         </Field>
-        <Field label="Currency">
+        <Field label={t("editSub.currency")}>
           <Select
             value={draft.currency}
             onChange={(v) => setDraft({ ...draft, currency: v as Currency })}
             options={CURRENCIES.map((c) => ({ value: c, label: c }))}
           />
         </Field>
-        <Field label="Cycle">
+        <Field label={t("editSub.cycle")}>
           <Select
             value={draft.cycle}
             onChange={(v) =>
@@ -185,12 +187,12 @@ export function EditSubscriptionSheet({
             }
             options={cycles.map((c) => ({
               value: c,
-              label: c[0].toUpperCase() + c.slice(1),
+              label: cycle(c),
             }))}
           />
         </Field>
         {draft.cycle === "custom" && (
-          <Field label="Every N days">
+          <Field label={t("editSub.everyN")}>
             <input
               className="field"
               type="number"
@@ -205,7 +207,7 @@ export function EditSubscriptionSheet({
             />
           </Field>
         )}
-        <Field label="Starts on">
+        <Field label={t("editSub.startDate")}>
           <input
             className="field"
             type="date"
@@ -215,12 +217,12 @@ export function EditSubscriptionSheet({
             }
           />
         </Field>
-        <Field label="Person">
+        <Field label={t("editSub.who")}>
           <Select
             value={draft.personId ?? ""}
             onChange={(v) => setDraft({ ...draft, personId: v || null })}
             options={[
-              { value: "", label: "—" },
+              { value: "", label: t("editSub.none") },
               ...(people ?? []).map((p) => ({
                 value: p.id,
                 label: `${p.emoji ?? ""} ${p.name}`.trim(),
@@ -228,12 +230,12 @@ export function EditSubscriptionSheet({
             ]}
           />
         </Field>
-        <Field label="Category">
+        <Field label={t("editSub.category")}>
           <Select
             value={draft.categoryId ?? ""}
             onChange={(v) => setDraft({ ...draft, categoryId: v || null })}
             options={[
-              { value: "", label: "—" },
+              { value: "", label: t("editSub.none") },
               ...(cats ?? []).map((c) => ({ value: c.id, label: c.name })),
             ]}
           />
@@ -241,12 +243,12 @@ export function EditSubscriptionSheet({
       </div>
 
       <div className="mt-3">
-        <Field label="Ends after N payments (blank = ongoing)">
+        <Field label={t("editSub.endAfter")}>
           <input
             className="field"
             type="number"
             min={1}
-            placeholder="e.g. 5"
+            placeholder={t("editSub.endAfterPh")}
             value={draft.totalPayments ?? ""}
             onChange={(e) =>
               setDraft({
@@ -260,7 +262,7 @@ export function EditSubscriptionSheet({
 
       <div className="mt-5">
         <div className="mb-2 text-xs uppercase tracking-wider text-white/40">
-          Reminders
+          {t("editSub.remindTitle")}
         </div>
         <div className="tile divide-y divide-white/5 overflow-hidden rounded-2xl">
           {draft.notify.map((rule, i) => (
@@ -271,12 +273,11 @@ export function EditSubscriptionSheet({
               <div>
                 <div className="text-sm">
                   {rule.daysBefore === 0
-                    ? "Payment day"
-                    : `${rule.daysBefore} day${rule.daysBefore === 1 ? "" : "s"} before`}
+                    ? t("editSub.daysBefore0")
+                    : t("editSub.daysBeforeN", { n: rule.daysBefore })}
                 </div>
                 <div className="text-xs text-white/50">
-                  Fires next time you open the app after crossing the
-                  threshold.
+                  {t("editSub.remindFires")}
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -301,10 +302,10 @@ export function EditSubscriptionSheet({
 
       <div className="mt-6 flex gap-2">
         <button onClick={onClose} className="btn-ghost flex-1">
-          Cancel
+          {t("editSub.cancel")}
         </button>
         <button onClick={save} className="btn-primary flex-1">
-          <Icon.Check /> Save
+          <Icon.Check /> {t("editSub.save")}
         </button>
       </div>
     </Sheet>

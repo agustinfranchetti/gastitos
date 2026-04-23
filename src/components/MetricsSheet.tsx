@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Sheet } from "./Sheet";
 import { useCategories, usePeople, useSettings, useSubscriptions } from "../lib/hooks";
+import { useI18n } from "../lib/i18n";
 import { convert, formatMoney } from "../lib/money";
 import { paymentsInMonth, priceOn } from "../lib/billing";
 import type { Currency, FxRates, Subscription } from "../lib/types";
@@ -28,6 +29,7 @@ export function MetricsSheet({
   const subs = useSubscriptions();
   const people = usePeople();
   const cats = useCategories();
+  const { t, dateLocale } = useI18n();
 
   const currency =
     displayCurrency ?? ((settings?.primaryCurrency ?? "ARS") as Currency);
@@ -63,19 +65,22 @@ export function MetricsSheet({
       const total = subs
         .filter((s) => s.active)
         .reduce((acc, s) => acc + monthTotal(s, m, currency, fx), 0);
-      out.push({ label: format(m, "MMM"), total });
+      out.push({
+        label: format(m, "MMM", { locale: dateLocale }),
+        total,
+      });
     }
     return out;
-  }, [subs, currency, fx, month]);
+  }, [subs, currency, fx, month, dateLocale]);
 
   const byCategory = useMemo(() => {
     const map = new Map<string, number>();
     for (const s of subs ?? []) {
       if (!s.active) continue;
-      const t = monthTotal(s, month, currency, fx);
-      if (t === 0) continue;
+      const tot = monthTotal(s, month, currency, fx);
+      if (tot === 0) continue;
       const key = s.categoryId ?? "uncategorized";
-      map.set(key, (map.get(key) ?? 0) + t);
+      map.set(key, (map.get(key) ?? 0) + tot);
     }
     return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
   }, [subs, currency, fx, month]);
@@ -84,10 +89,10 @@ export function MetricsSheet({
     const map = new Map<string, number>();
     for (const s of subs ?? []) {
       if (!s.active) continue;
-      const t = monthTotal(s, month, currency, fx);
-      if (t === 0) continue;
+      const tot = monthTotal(s, month, currency, fx);
+      if (tot === 0) continue;
       const key = s.personId ?? "—";
-      map.set(key, (map.get(key) ?? 0) + t);
+      map.set(key, (map.get(key) ?? 0) + tot);
     }
     return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
   }, [subs, currency, fx, month]);
@@ -98,23 +103,31 @@ export function MetricsSheet({
   return (
     <Sheet open={open} onClose={onClose} maxHeight="92vh">
       <div className="mb-1 text-xs uppercase tracking-[0.2em] text-white/40">
-        Overview · {format(month, "MMM yyyy")}
+        {t("metrics.overview", {
+          month: format(month, "MMM yyyy", { locale: dateLocale }),
+        })}
       </div>
-      <div className="font-display text-3xl">The bigger picture</div>
+      <div className="font-display text-3xl">{t("metrics.title")}</div>
 
       <div className="mt-4 grid grid-cols-2 gap-3">
-        <Stat label="This month" value={formatMoney(monthly, currency)} />
-        <Stat label="Yearly pace" value={formatMoney(yearly, currency)} />
+        <Stat
+          label={t("metrics.thisMonth")}
+          value={formatMoney(monthly, currency)}
+        />
+        <Stat
+          label={t("metrics.yearlyPace")}
+          value={formatMoney(yearly, currency)}
+        />
       </div>
 
       <div className="mt-6">
         <div className="mb-2 text-[10px] uppercase tracking-[0.25em] text-white/40">
-          Last 6 months
+          {t("metrics.last6")}
         </div>
         <div className="tile flex h-44 gap-2 p-4">
-          {last6.map((m) => (
+          {last6.map((m, i) => (
             <div
-              key={m.label}
+              key={`${i}-${m.label}`}
               className="flex flex-1 flex-col items-center"
             >
               <div className="relative w-full flex-1">
@@ -134,12 +147,12 @@ export function MetricsSheet({
 
       <div className="mt-6">
         <div className="mb-2 text-[10px] uppercase tracking-[0.25em] text-white/40">
-          By category
+          {t("metrics.byCategory")}
         </div>
         <div className="tile divide-y divide-white/5 overflow-hidden">
           {byCategory.length === 0 && (
             <div className="px-4 py-3 text-sm text-white/40">
-              Nothing due this month.
+              {t("metrics.nothingDue")}
             </div>
           )}
           {byCategory.map(([id, v]) => {
@@ -152,7 +165,7 @@ export function MetricsSheet({
                       className="h-2 w-2 rounded-full"
                       style={{ background: c?.color ?? "#666" }}
                     />
-                    {c?.name ?? "Uncategorized"}
+                    {c?.name ?? t("metrics.uncategorized")}
                   </span>
                   <span className="text-white/80">
                     {formatMoney(v, currency)}
@@ -175,12 +188,12 @@ export function MetricsSheet({
 
       <div className="mb-10 mt-6">
         <div className="mb-2 text-[10px] uppercase tracking-[0.25em] text-white/40">
-          By person
+          {t("metrics.byPerson")}
         </div>
         <div className="tile divide-y divide-white/5 overflow-hidden">
           {byPerson.length === 0 && (
             <div className="px-4 py-3 text-sm text-white/40">
-              Nothing due this month.
+              {t("metrics.nothingDue")}
             </div>
           )}
           {byPerson.map(([id, v]) => {
@@ -197,7 +210,7 @@ export function MetricsSheet({
                   >
                     {p?.emoji ?? p?.name?.[0] ?? "·"}
                   </span>
-                  {p?.name ?? "Unassigned"}
+                  {p?.name ?? t("metrics.unassigned")}
                 </span>
                 <span className="text-white/80">
                   {formatMoney(v, currency)}

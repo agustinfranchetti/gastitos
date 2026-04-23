@@ -16,9 +16,11 @@ import { paymentsInMonth, priceOn } from "./lib/billing";
 import { convert, fetchFxRates } from "./lib/money";
 import { scanAndNotify } from "./lib/notify";
 import { useAuth } from "./lib/useAuth";
+import { useI18n } from "./lib/i18n";
 
 export default function App() {
   useAuth();
+  const { t, formatMonth, formatShortDay, dateLocale } = useI18n();
 
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
   const [picked, setPicked] = useState<Subscription | null>(null);
@@ -103,15 +105,16 @@ export default function App() {
   return (
     <div className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col pb-28">
       <Header
-        month={month}
+        monthLabel={format(month, "MMM yyyy", { locale: dateLocale })}
         onPrev={() => setMonth(subMonths(month, 1))}
         onNext={() => setMonth(addMonths(month, 1))}
         onMetrics={() => setMetricsOpen(true)}
         onSettings={() => setSettingsOpen(true)}
+        t={t}
       />
 
       <TotalBanner
-        month={month}
+        monthLabel={formatMonth(month)}
         total={total}
         currency={currency}
         onChangeCurrency={setDisplayCurrency}
@@ -134,11 +137,12 @@ export default function App() {
           month={month}
           displayCurrency={currency}
           fx={fx}
+          formatShortDay={formatShortDay}
           onPickSub={(s) => setPicked(s)}
         />
       </div>
 
-      <AddFab onClick={() => openNewFor(null)} />
+      <AddFab label={t("addFab.label")} onClick={() => openNewFor(null)} />
 
       <DaySheet
         date={day}
@@ -190,39 +194,53 @@ export default function App() {
 }
 
 function Header({
-  month,
+  monthLabel,
   onPrev,
   onNext,
   onMetrics,
   onSettings,
+  t,
 }: {
-  month: Date;
+  monthLabel: string;
   onPrev: () => void;
   onNext: () => void;
   onMetrics: () => void;
   onSettings: () => void;
+  t: (k: string) => string;
 }) {
   return (
     <header className="sticky top-0 z-20 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top),12px)] pb-2 backdrop-blur-md">
       <div className="flex items-center gap-0.5 text-white/70">
-        <button onClick={onPrev} className="iconbtn" aria-label="previous">
+        <button
+          onClick={onPrev}
+          className="iconbtn"
+          aria-label={t("header.prevMonth")}
+        >
           <Icon.ChevronLeft />
         </button>
         <div className="px-2 font-display italic text-[15px] text-white/80">
-          {format(month, "MMM yyyy")}
+          {monthLabel}
         </div>
-        <button onClick={onNext} className="iconbtn" aria-label="next">
+        <button
+          onClick={onNext}
+          className="iconbtn"
+          aria-label={t("header.nextMonth")}
+        >
           <Icon.ChevronRight />
         </button>
       </div>
       <div className="flex items-center gap-1.5">
-        <button className="iconbtn" onClick={onMetrics} aria-label="metrics">
+        <button
+          className="iconbtn"
+          onClick={onMetrics}
+          aria-label={t("header.metrics")}
+        >
           <Icon.Chart />
         </button>
         <button
           className="iconbtn"
           onClick={onSettings}
-          aria-label="settings"
+          aria-label={t("header.settings")}
         >
           <Icon.Gear />
         </button>
@@ -231,11 +249,11 @@ function Header({
   );
 }
 
-function AddFab({ onClick }: { onClick: () => void }) {
+function AddFab({ label, onClick }: { label: string; onClick: () => void }) {
   return (
     <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),16px)] z-30 flex justify-center px-4">
       <button onClick={onClick} className="btn-primary !px-5 !py-3">
-        <Icon.Plus /> Add subscription
+        <Icon.Plus /> {label}
       </button>
     </div>
   );
@@ -247,6 +265,7 @@ function UpcomingList({
   token,
   displayCurrency,
   fx,
+  formatShortDay,
   onPickSub,
 }: {
   subs: Subscription[];
@@ -254,8 +273,10 @@ function UpcomingList({
   token?: string;
   displayCurrency: Currency;
   fx?: import("./lib/types").FxRates;
+  formatShortDay: (d: Date) => string;
   onPickSub: (s: Subscription) => void;
 }) {
+  const { t } = useI18n();
   const items = useMemo(() => {
     const out: { sub: Subscription; date: Date }[] = [];
     for (const s of subs) {
@@ -270,7 +291,7 @@ function UpcomingList({
   if (items.length === 0) {
     return (
       <div className="mt-10 px-6 text-center text-sm text-white/35">
-        Nothing scheduled this month.
+        {t("upcoming.empty")}
       </div>
     );
   }
@@ -278,7 +299,7 @@ function UpcomingList({
   return (
     <div className="mt-6 px-4">
       <div className="mb-2 text-[10px] uppercase tracking-[0.25em] text-white/30">
-        This month
+        {t("upcoming.title")}
       </div>
       <div className="divide-y divide-white/[0.04] rounded-xl border border-white/[0.05] bg-white/[0.02]">
         {items.map(({ sub, date }, i) => (
@@ -291,7 +312,7 @@ function UpcomingList({
             <div className="flex-1">
               <div className="text-sm">{sub.name}</div>
               <div className="text-[11px] text-white/40">
-                {format(date, "d MMM")}
+                {formatShortDay(date)}
                 {sub.currency !== displayCurrency && (
                   <> · {formatShort(priceOn(sub, date), sub.currency)}</>
                 )}

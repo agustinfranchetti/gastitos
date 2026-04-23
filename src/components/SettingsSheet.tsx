@@ -4,20 +4,41 @@ import { Icon } from "./Icons";
 import { db } from "../lib/db";
 import { supabase, supabaseEnabled } from "../lib/supabase";
 import { useAuth } from "../lib/useAuth";
-import { fetchFxRates } from "../lib/money";
+import { fetchFxRates, oneUnitInCurrency } from "../lib/money";
 import {
   ACCENT_PICKER_STYLE,
   ACCENT_PRESET_ORDER,
   syncDocumentAccentFromSettings,
 } from "../lib/theme";
 import type { Category, Currency, Person, Settings } from "../lib/types";
-import { CURRENCIES } from "../lib/types";
 import { useCategories, usePeople, useSettings } from "../lib/hooks";
 import { newId } from "../lib/id";
 import { useI18n } from "../lib/i18n";
 import { requestNotificationPermission } from "../lib/notify";
-import { Select, Toggle } from "./EditSubscriptionSheet";
+import { Toggle } from "./EditSubscriptionSheet";
 import { DiscPickerModal } from "./DiscPickerModal";
+import { CurrencyToggle } from "./CurrencyToggle";
+import { LanguageToggle } from "./LanguageToggle";
+
+/** Reference rows in settings (order fixed). */
+const FX_REFERENCE_PAIRS: [from: Currency, to: Currency][] = [
+  ["USD", "ARS"],
+  ["EUR", "ARS"],
+  ["USD", "EUR"],
+  ["EUR", "USD"],
+];
+
+function formatFxTableAmount(n: number): string {
+  if (n == null || Number.isNaN(n) || n === 0) return "—";
+  if (n === 1) return "1";
+  if (n >= 1) {
+    return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+  }
+  if (n >= 0.01) {
+    return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 8 });
+  }
+  return n.toLocaleString(undefined, { maximumSignificantDigits: 10, minimumSignificantDigits: 2 });
+}
 
 export function SettingsSheet({
   open,
@@ -50,13 +71,19 @@ export function SettingsSheet({
     setFxLoading(true);
     setFxError(null);
     try {
-      const fx = await fetchFxRates(settings!.primaryCurrency);
+      const fx = await fetchFxRates();
       await patch({ fx });
     } catch (e) {
       setFxError((e as Error).message);
     } finally {
       setFxLoading(false);
     }
+  }
+
+  function setPrimaryCurrency(c: Currency) {
+    if (!settings) return;
+    if (c === settings.primaryCurrency) return;
+    void patch({ primaryCurrency: c });
   }
 
   async function toggleNotifications(v: boolean) {
@@ -113,61 +140,53 @@ export function SettingsSheet({
                       })}
                     </div>
                   </Row>
-                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-                    <div className="min-w-0 text-sm text-zinc-700 dark:text-white/80">
-                      {t("settings.compactAmounts")}
+                  <div className="flex min-w-0 max-w-full flex-row items-center justify-between gap-3">
+                    <div className="flex min-w-0 flex-1 items-center gap-1">
+                      <span className="text-sm text-zinc-700 dark:text-white/80">
+                        {t("settings.compactAmounts")}
+                      </span>
+                      <button
+                        type="button"
+                        className="iconbtn h-8 w-8 shrink-0 text-zinc-500 dark:text-white/45"
+                        title={t("settings.compactAmountsHelp")}
+                        aria-label={t("settings.compactAmountsHelp")}
+                      >
+                        <Icon.Info />
+                      </button>
                     </div>
-                    <Toggle
-                      checked={settings.useCompactAmounts !== false}
-                      onChange={(v) => void patch({ useCompactAmounts: v })}
-                    />
+                    <div className="shrink-0">
+                      <Toggle
+                        checked={settings.useCompactAmounts !== false}
+                        onChange={(v) => void patch({ useCompactAmounts: v })}
+                      />
+                    </div>
                   </div>
-                  <p className="text-xs text-zinc-500 dark:text-white/50">
-                    {t("settings.compactAmountsHelp")}
-                  </p>
                   <hr className="border-zinc-200/80 dark:border-white/10" />
-                  <div className="flex min-w-0 max-w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-                    <div className="min-w-0 shrink-0 text-sm text-zinc-700 dark:text-white/80">
+                  <div className="space-y-2">
+                    <div className="min-w-0 text-sm text-zinc-700 dark:text-white/80">
                       {t("settings.language")}
                     </div>
-                    <div className="flex min-w-0 max-w-full flex-1 flex-wrap justify-end gap-2">
-                      {(
-                        [
-                          { code: "en" as const, flag: "🇬🇧", label: t("settings.languageEn") },
-                          { code: "es" as const, flag: "🇪🇸", label: t("settings.languageEs") },
-                        ] as const
-                      ).map(({ code, flag, label }) => {
-                        const active = (settings.language ?? "en") === code;
-                        return (
-                          <button
-                            key={code}
-                            type="button"
-                            onClick={() => void patch({ language: code })}
-                            className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm transition-colors ${
-                              active
-                                ? "accent-segment-active"
-                                : "border-zinc-200 bg-white/80 text-zinc-600 dark:border-white/10 dark:bg-white/[0.02] dark:text-white/70"
-                            }`}
-                            aria-pressed={active}
-                          >
-                            <span className="text-lg leading-none" aria-hidden>
-                              {flag}
-                            </span>
-                            {label}
-                          </button>
-                        );
-                      })}
-                    </div>
+                    <LanguageToggle
+                      fullWidth
+                      value={settings.language ?? "en"}
+                      onChange={(l) => void patch({ language: l })}
+                      labels={{
+                        en: t("settings.languageEn"),
+                        es: t("settings.languageEs"),
+                      }}
+                    />
                   </div>
                   <hr className="border-zinc-200/80 dark:border-white/10" />
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="min-w-0 text-sm text-zinc-700 dark:text-white/80">
+                  <div className="flex min-w-0 max-w-full flex-row items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1 text-sm text-zinc-700 dark:text-white/80">
                       {t("settings.enableReminders")}
                     </div>
-                    <Toggle
-                      checked={settings.notificationsEnabled}
-                      onChange={(v) => void toggleNotifications(v)}
-                    />
+                    <div className="shrink-0">
+                      <Toggle
+                        checked={settings.notificationsEnabled}
+                        onChange={(v) => void toggleNotifications(v)}
+                      />
+                    </div>
                   </div>
                   <p className="text-xs text-zinc-500 dark:text-white/50">
                     {t("settings.remindHelp")}
@@ -178,20 +197,22 @@ export function SettingsSheet({
           <section>
             <SettingsCategoryLabel>{t("settings.categoryMoney")}</SettingsCategoryLabel>
             <div className="tile mt-1.5 space-y-3 p-4">
-              <Row label={t("settings.primary")}>
-                <Select
+              <div className="space-y-2">
+                <div className="min-w-0 text-sm text-zinc-700 dark:text-white/80">
+                  {t("settings.primary")}
+                </div>
+                <CurrencyToggle
+                  fullWidth
                   value={settings.primaryCurrency}
-                  onChange={(v) => void patch({ primaryCurrency: v as Currency })}
-                  options={CURRENCIES.map((c) => ({ value: c, label: c }))}
+                  onChange={setPrimaryCurrency}
                 />
-              </Row>
-              <Row label={t("settings.fx")}>
-                <div className="flex min-w-0 max-w-full flex-1 flex-col items-end gap-2 sm:flex-row sm:items-center">
-                  <span className="min-w-0 break-words text-right text-xs text-zinc-500 dark:text-white/50">
-                    {settings.fx?.fetchedAt
-                      ? new Date(settings.fx.fetchedAt).toLocaleString()
-                      : t("common.never")}
-                  </span>
+              </div>
+              <hr className="border-zinc-200/80 dark:border-white/10" />
+              <div className="space-y-2">
+                <div className="flex min-w-0 max-w-full items-center justify-between gap-3">
+                  <div className="min-w-0 text-sm text-zinc-700 dark:text-white/80">
+                    {t("settings.fx")}
+                  </div>
                   <button
                     type="button"
                     onClick={() => void refreshFx()}
@@ -201,12 +222,51 @@ export function SettingsSheet({
                     {fxLoading ? t("settings.busy") : t("settings.refresh")}
                   </button>
                 </div>
-              </Row>
-              {fxError && (
-                <div className="text-xs text-red-400">
-                  {t("settings.fxError")} {fxError}
+                <div className="min-w-0 break-words text-xs text-zinc-500 dark:text-white/50">
+                  {settings.fx?.fetchedAt
+                    ? new Date(settings.fx.fetchedAt).toLocaleString()
+                    : t("common.never")}
                 </div>
-              )}
+                {settings.fx && (
+                  <div className="pt-1">
+                    <div className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-zinc-500 dark:text-white/40">
+                      {t("settings.fxReference")}
+                    </div>
+                    <ul className="space-y-1.5 rounded-xl border border-zinc-200/90 bg-stone-50/80 px-3 py-2.5 dark:border-white/10 dark:bg-white/[0.02]">
+                      {FX_REFERENCE_PAIRS.flatMap(([from, to], i) => {
+                        const n = oneUnitInCurrency(from, to, settings.fx!);
+                        const row = (
+                          <li
+                            key={`${from}-${to}`}
+                            className="flex flex-wrap items-baseline justify-between gap-2 text-sm tabular-nums text-zinc-800 dark:text-white/90"
+                          >
+                            <span className="text-zinc-500 dark:text-white/50">
+                              1 {from} =
+                            </span>
+                            <span>
+                              {n == null ? "—" : formatFxTableAmount(n)} {to}
+                            </span>
+                          </li>
+                        );
+                        if (i === 2) {
+                          return [
+                            <li key="fx-ref-ars-sep" className="list-none !py-0" aria-hidden>
+                              <hr className="my-0.5 border-zinc-200/90 dark:border-white/10" />
+                            </li>,
+                            row,
+                          ];
+                        }
+                        return [row];
+                      })}
+                    </ul>
+                  </div>
+                )}
+                {fxError && (
+                  <div className="text-xs text-red-400">
+                    {t("settings.fxError")} {fxError}
+                  </div>
+                )}
+              </div>
             </div>
           </section>
 
@@ -453,11 +513,11 @@ function Row({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-w-0 max-w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+    <div className="flex min-w-0 max-w-full flex-row items-center justify-between gap-3">
       <div className="min-w-0 shrink-0 text-sm text-zinc-700 dark:text-white/80">
         {label}
       </div>
-      <div className="min-w-0 max-w-full flex-1 sm:flex sm:justify-end">
+      <div className="flex min-w-0 min-h-0 flex-1 items-center justify-end">
         {children}
       </div>
     </div>

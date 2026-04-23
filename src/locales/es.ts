@@ -91,6 +91,7 @@ const es = {
     currency: "Moneda",
     primary: "Principal",
     fx: "Tipo de cambio",
+    fxReference: "Referencia",
     refresh: "Actualizar",
     fxError: "Error de tipo de cambio:",
     logoDev: "Logo.dev",

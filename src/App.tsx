@@ -68,19 +68,19 @@ export default function App() {
     };
   }, [settings]);
 
-  // Auto-fetch FX on first load (and refresh if older than 6h).
+  // Auto-fetch FX on first load (and refresh if older than 6h). Not tied to primary currency
+  // (see settings reference table); fetches the canonical USD-based triangle.
   useEffect(() => {
     if (!settings) return;
     const stale =
       !settings.fx ||
       Date.now() - new Date(settings.fx.fetchedAt).getTime() >
-        6 * 60 * 60 * 1000 ||
-      settings.fx.base !== settings.primaryCurrency;
+        6 * 60 * 60 * 1000;
     if (!stale) return;
-    fetchFxRates(settings.primaryCurrency)
+    fetchFxRates()
       .then((fx) => db.settings.update("singleton", { fx }))
       .catch((e) => console.warn("[fx] fetch failed", e));
-  }, [settings?.primaryCurrency, settings?.fx?.fetchedAt]);
+  }, [settings, settings?.fx?.fetchedAt]);
 
   useEffect(() => {
     const run = () => scanAndNotify().catch(() => {});

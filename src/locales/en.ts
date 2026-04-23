@@ -90,6 +90,7 @@ const en = {
     currency: "Currency",
     primary: "Primary",
     fx: "FX rates",
+    fxReference: "Reference",
     refresh: "Refresh",
     fxError: "FX error:",
     logoDev: "Logo.dev",

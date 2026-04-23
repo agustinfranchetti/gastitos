@@ -105,6 +105,14 @@ export const Icon = {
       <path d="M3 12h18M12 3a15 15 0 0 0 0 18M12 3a15 15 0 0 1 0 18" />
     </>,
   ),
+  /** Help / tooltip trigger */
+  Info: mk(
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 16v-4.5" />
+      <circle cx="12" cy="7" r="0.75" fill="currentColor" stroke="none" />
+    </>,
+  ),
   /** Currency / money */
   Coins: mk(
     <>

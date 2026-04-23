@@ -114,12 +114,16 @@ export function MetricsSheet({
           month: format(month, "MMM yyyy", { locale: dateLocale }),
         })}
       </div>
-      <div className="title-app text-3xl">{t("metrics.title")}</div>
-      {onChangeCurrency && (
-        <div className="mt-3 flex justify-center">
-          <CurrencyToggle value={currency} onChange={onChangeCurrency} />
+      <div className="flex min-w-0 items-center justify-between gap-2">
+        <div className="title-app min-w-0 flex-1 text-3xl leading-tight">
+          {t("metrics.title")}
         </div>
-      )}
+        {onChangeCurrency && (
+          <div className="shrink-0">
+            <CurrencyToggle value={currency} onChange={onChangeCurrency} />
+          </div>
+        )}
+      </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3">
         <Stat

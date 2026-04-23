@@ -88,10 +88,24 @@ export function convert(
   return inBase * (rTo / rBase);
 }
 
+/** How many `to` equal 1 `from`, or null if the triangle is incomplete. */
+export function oneUnitInCurrency(
+  from: Currency,
+  to: Currency,
+  fx: FxRates,
+): number | null {
+  if (from === to) return 1;
+  if ((fx.rates[from] ?? 0) <= 0 || (fx.rates[to] ?? 0) <= 0) return null;
+  const n = convert(1, from, to, fx);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return n;
+}
+
 /**
  * Fetches rates via Fawaz Ahmed's free CDN-hosted currency API.
  * No key, no CORS issues, updated daily.
  * Docs: https://github.com/fawazahmed0/exchange-api
+ * Default base is USD so stored triangles stay in one form (independent of primary currency).
  */
 export async function fetchFxRates(base: Currency = "USD"): Promise<FxRates> {
   const b = base.toLowerCase();

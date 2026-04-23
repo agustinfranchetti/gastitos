@@ -4,6 +4,7 @@ const es = {
   common: {
     add: "Añadir",
     never: "nunca",
+    cancel: "Cancelar",
   },
   app: {
     updateAvailable: "Hay una nueva versión.",
@@ -54,6 +55,10 @@ const es = {
   settings: {
     title: "Ajustes",
     back: "Atrás",
+    categoryAccount: "Cuenta",
+    categoryGeneral: "Pantalla e idioma",
+    categoryMoney: "Dinero",
+    categoryAdvanced: "Avanzado",
     lookAndFeel: "Color y cifras",
     accent: "Color principal",
     compactAmounts: "Cifras abreviadas (K / M)",
@@ -92,9 +97,17 @@ const es = {
       "Los recordatorios se muestran la próxima vez que abras la app después de cruzar la fecha. Hasta 3 por suscripción.",
     people: "Personas",
     categories: "Categorías",
+    pickColor: "Elegir color",
+    emoji: "Emoji",
     addPerson: "Añadir persona…",
     addCategory: "Añadir categoría…",
     delete: "eliminar",
+    discPickerTitle: "Icono y color",
+    discColor: "Color",
+    discIcon: "Icono",
+    customEmojiPh: "Escribe o pega un emoji",
+    deletePersonConfirm: "¿Eliminar a {name}?",
+    deleteCategoryConfirm: "¿Eliminar la categoría «{name}»?",
   },
   editSub: {
     new: "Nueva suscripción",

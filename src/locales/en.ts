@@ -2,6 +2,7 @@ const en = {
   common: {
     add: "Add",
     never: "never",
+    cancel: "Cancel",
   },
   app: {
     updateAvailable: "A new version is ready.",
@@ -53,6 +54,10 @@ const en = {
   settings: {
     title: "Settings",
     back: "Back",
+    categoryAccount: "Account",
+    categoryGeneral: "Display & language",
+    categoryMoney: "Money",
+    categoryAdvanced: "Advanced",
     lookAndFeel: "Color & display",
     accent: "Accent",
     compactAmounts: "Short amounts (K / M)",
@@ -91,9 +96,17 @@ const en = {
       "Reminders fire the next time you open the app after a threshold is crossed. Up to 3 per subscription.",
     people: "People",
     categories: "Categories",
+    pickColor: "Choose color",
+    emoji: "Emoji",
     addPerson: "Add person…",
     addCategory: "Add category…",
     delete: "delete",
+    discPickerTitle: "Icon & color",
+    discColor: "Color",
+    discIcon: "Icon",
+    customEmojiPh: "Type or paste an emoji",
+    deletePersonConfirm: "Delete {name}?",
+    deleteCategoryConfirm: "Delete the category “{name}”?",
   },
   editSub: {
     new: "New subscription",

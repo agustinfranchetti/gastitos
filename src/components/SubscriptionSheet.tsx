@@ -152,7 +152,11 @@ export function SubscriptionSheet({
         />
         <Row
           label={t("subscription.category")}
-          value={cat?.name ?? t("metrics.uncategorized")}
+          value={
+            cat
+              ? (cat.emoji?.trim() ? `${cat.emoji.trim()} ` : "") + cat.name
+              : t("metrics.uncategorized")
+          }
           rightColor={cat?.color}
         />
         <Row

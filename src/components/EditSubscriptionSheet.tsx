@@ -236,7 +236,10 @@ export function EditSubscriptionSheet({
             onChange={(v) => setDraft({ ...draft, categoryId: v || null })}
             options={[
               { value: "", label: t("editSub.none") },
-              ...(cats ?? []).map((c) => ({ value: c.id, label: c.name })),
+              ...(cats ?? []).map((c) => ({
+                value: c.id,
+                label: (c.emoji?.trim() ? `${c.emoji.trim()} ` : "") + c.name,
+              })),
             ]}
           />
         </Field>

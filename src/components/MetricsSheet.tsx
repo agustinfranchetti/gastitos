@@ -163,12 +163,19 @@ export function MetricsSheet({
             return (
               <div key={id} className="px-4 py-3">
                 <div className="mb-1 flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-2">
+                  <span className="flex min-w-0 items-center gap-2">
                     <span
-                      className="h-2 w-2 rounded-full"
+                      className="h-2 w-2 shrink-0 rounded-full"
                       style={{ background: c?.color ?? "#666" }}
                     />
-                    {c?.name ?? t("metrics.uncategorized")}
+                    {c?.emoji?.trim() && (
+                      <span className="shrink-0 text-base leading-none" aria-hidden>
+                        {c.emoji.trim()}
+                      </span>
+                    )}
+                    <span className="min-w-0 truncate">
+                      {c?.name ?? t("metrics.uncategorized")}
+                    </span>
                   </span>
                   <span className="text-zinc-800 dark:text-white/80">
                     {formatMoney(v, currency, moneyOpts)}

@@ -25,6 +25,8 @@ export interface Category {
   id: string;
   name: string;
   color: string; // hex
+  /** Shown in the category disc; like person emoji */
+  emoji?: string;
 }
 
 // A change in price effective from a given date (ISO).

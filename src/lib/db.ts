@@ -60,10 +60,10 @@ export async function ensureSeed() {
   const catCount = await db.categories.count();
   if (catCount === 0) {
     await db.categories.bulkAdd([
-      { id: "entertainment", name: "Entertainment", color: "#7c5cff" },
-      { id: "productivity", name: "Productivity", color: "#2dd4bf" },
-      { id: "lifestyle", name: "Lifestyle", color: "#f59e0b" },
-      { id: "utilities", name: "Utilities", color: "#60a5fa" },
+      { id: "entertainment", name: "Entertainment", color: "#7c5cff", emoji: "🎬" },
+      { id: "productivity", name: "Productivity", color: "#2dd4bf", emoji: "💼" },
+      { id: "lifestyle", name: "Lifestyle", color: "#f59e0b", emoji: "🌴" },
+      { id: "utilities", name: "Utilities", color: "#60a5fa", emoji: "🔌" },
     ]);
   }
 }

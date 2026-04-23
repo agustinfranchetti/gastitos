@@ -141,7 +141,6 @@ export function EditSubscriptionSheet({
     <Sheet
       open={open}
       onClose={onClose}
-      maxHeight="90vh"
       footer={
         <div className="flex gap-2">
           <button onClick={onClose} className="btn-ghost flex-1">

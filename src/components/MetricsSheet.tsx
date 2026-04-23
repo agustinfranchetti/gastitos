@@ -108,7 +108,7 @@ export function MetricsSheet({
   const maxCat = Math.max(1, ...byCategory.map(([, v]) => v));
 
   return (
-    <Sheet open={open} onClose={onClose} maxHeight="92vh">
+    <Sheet open={open} onClose={onClose}>
       <div className="mb-1 text-xs uppercase tracking-[0.2em] text-zinc-500 dark:text-white/40">
         {t("metrics.overview", {
           month: format(month, "MMM yyyy", { locale: dateLocale }),

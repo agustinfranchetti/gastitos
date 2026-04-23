@@ -4,13 +4,17 @@ import {
   useDragControls,
 } from "framer-motion";
 import { type CSSProperties, type ReactNode, useEffect } from "react";
+import { lockBodyScroll, unlockBodyScroll } from "../lib/bodyScrollLock";
+
+/** Default max height; align with `Settings` / main panels (month picker often overrides smaller). */
+export const SHEET_DEFAULT_MAX_HEIGHT = "85vh";
 
 export function Sheet({
   open,
   onClose,
   children,
   footer,
-  maxHeight = "85vh",
+  maxHeight = SHEET_DEFAULT_MAX_HEIGHT,
 }: {
   open: boolean;
   onClose: () => void;
@@ -27,11 +31,10 @@ export function Sheet({
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    lockBodyScroll();
     return () => {
       window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
+      unlockBodyScroll();
     };
   }, [open, onClose]);
 

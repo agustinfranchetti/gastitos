@@ -33,7 +33,7 @@ export function DaySheet({
   );
 
   return (
-    <Sheet open={!!date} onClose={onClose} maxHeight="70vh">
+    <Sheet open={!!date} onClose={onClose}>
       <div className="mb-4 flex items-end justify-between">
         <div>
           <div className="text-[11px] uppercase tracking-[0.2em] text-[color:rgb(var(--accent-500-rgb)/0.5)] dark:text-[color:rgb(var(--accent-400-rgb)/0.5)]">

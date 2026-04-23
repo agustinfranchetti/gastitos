@@ -69,7 +69,7 @@ export function SettingsSheet({
   }
 
   return (
-    <Sheet open={open} onClose={onClose} maxHeight="85vh">
+    <Sheet open={open} onClose={onClose}>
       <div className="w-full min-w-0 max-w-full overflow-x-hidden px-0.5">
         <div className="mb-4 flex items-center justify-between gap-2">
           <div className="title-app min-w-0 text-2xl">{t("settings.title")}</div>

@@ -17,6 +17,7 @@ import { convert, fetchFxRates } from "./lib/money";
 import { scanAndNotify } from "./lib/notify";
 import { useAuth } from "./lib/useAuth";
 import { useI18n } from "./lib/i18n";
+import { PwaUpdateChip } from "./components/PwaUpdateChip";
 import { usePwaUpdate } from "./lib/usePwaUpdate";
 
 export default function App() {
@@ -106,6 +107,12 @@ export default function App() {
 
   return (
     <div className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col pb-28">
+      {needRefresh && (
+        <PwaUpdateChip
+          onUpdate={() => void applyUpdate()}
+          onDismiss={dismiss}
+        />
+      )}
       <Header
         monthLabel={format(month, "MMM yyyy", { locale: dateLocale })}
         onPrev={() => setMonth(subMonths(month, 1))}
@@ -116,28 +123,6 @@ export default function App() {
       />
 
       <div className="flex min-h-0 flex-1 flex-col pt-5">
-        {needRefresh && (
-          <div className="mb-3 flex shrink-0 items-center justify-between gap-2 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2.5 text-sm">
-            <span className="text-white/80">{t("app.updateAvailable")}</span>
-            <div className="flex shrink-0 items-center gap-1.5">
-              <button
-                type="button"
-                onClick={dismiss}
-                className="rounded-full px-2.5 py-1.5 text-xs text-white/55 active:bg-white/10"
-              >
-                {t("app.updateLater")}
-              </button>
-              <button
-                type="button"
-                onClick={() => void applyUpdate()}
-                className="btn-primary !py-1.5 !text-xs"
-              >
-                {t("app.update")}
-              </button>
-            </div>
-          </div>
-        )}
-
         <TotalBanner
           monthLabel={formatMonth(month)}
           total={total}

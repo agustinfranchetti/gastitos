@@ -53,6 +53,16 @@ const es = {
   },
   settings: {
     title: "Ajustes",
+    back: "Atrás",
+    lookAndFeel: "Apariencia",
+    appearance: "Tema",
+    appearanceDark: "Oscuro",
+    appearanceLight: "Claro",
+    appearanceSystem: "Sistema",
+    accent: "Color principal",
+    compactAmounts: "Cifras abreviadas (K / M)",
+    compactAmountsHelp:
+      "Cifras grandes se muestran como $154K o $1,2M en lugar del valor completo.",
     language: "Idioma",
     languageEn: "English",
     languageEs: "Español",

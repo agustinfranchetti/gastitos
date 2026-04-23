@@ -102,7 +102,7 @@ export function SubscriptionSheet({
           </button>
         </div>
         <Logo sub={sub} token={token} size={64} rounded={16} />
-        <div className="mt-3 font-display text-[28px] leading-tight">
+        <div className="title-hero text-[28px] leading-tight">
           {sub.name}
         </div>
         <div className="text-[13px] text-white/50">
@@ -219,7 +219,7 @@ function Row({
       <span className="text-sm text-white/60">{label}</span>
       <span className="flex items-center gap-2 text-sm">
         {rightBadge && (
-          <span className="rounded-full border border-ember-400/30 bg-ember-400/10 px-2 py-0.5 text-[10px] text-ember-200">
+          <span className="rounded-full border border-[color:rgb(var(--accent-500-rgb)/0.35)] bg-[color:rgb(var(--accent-500-rgb)/0.1)] px-2 py-0.5 text-[10px] text-[color:rgb(var(--accent-200-rgb))]">
             {rightBadge}
           </span>
         )}
@@ -313,7 +313,7 @@ function RaiseSheet({
 
   return (
     <Sheet open={open} onClose={onClose}>
-      <div className="mb-2 font-display text-2xl">{t("raise.title")}</div>
+      <div className="title-app text-2xl">{t("raise.title")}</div>
       <p className="mb-4 text-sm text-white/60">
         {t("raise.forLine", {
           name: sub.name,
@@ -327,7 +327,9 @@ function RaiseSheet({
             key={m}
             onClick={() => setMode(m)}
             className={`rounded-full px-3 py-1.5 ${
-              mode === m ? "bg-ember-500 text-black" : "text-white/70"
+              mode === m
+                ? "bg-[rgb(var(--accent-500-rgb))] text-black"
+                : "text-white/70"
             }`}
           >
             {m === "percent" ? t("raise.byPercent") : t("raise.newPrice")}
@@ -380,12 +382,12 @@ function RaiseSheet({
         </Field>
       </div>
 
-      <div className="mt-5 flex items-center justify-between rounded-2xl border border-ember-400/30 bg-ember-400/10 px-4 py-3">
+      <div className="mt-5 flex items-center justify-between rounded-2xl border border-[color:rgb(var(--accent-500-rgb)/0.35)] bg-[color:rgb(var(--accent-500-rgb)/0.1)] px-4 py-3">
         <div>
-          <div className="text-xs uppercase tracking-wider text-ember-200/80">
+          <div className="text-xs uppercase tracking-wider text-[color:rgb(var(--accent-300-rgb)/0.85)]">
             {t("raise.newPriceStat")}
           </div>
-          <div className="font-display text-2xl text-white">
+          <div className="font-display text-2xl font-semibold tabular-nums text-[color:rgb(var(--accent-50-rgb))]">
             {formatMoneyWithCode(preview || 0)}
           </div>
         </div>

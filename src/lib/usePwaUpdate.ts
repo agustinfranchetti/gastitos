@@ -17,6 +17,14 @@ export function usePwaUpdate() {
       onNeedRefresh() {
         setNeedRefresh(true);
       },
+      onRegisteredSW(_url, reg) {
+        if (!import.meta.env.PROD) return;
+        const onVis = () => {
+          if (document.visibilityState === "visible") void reg?.update();
+        };
+        document.addEventListener("visibilitychange", onVis);
+        void reg?.update();
+      },
     });
     updateRef.current = update;
   }, []);

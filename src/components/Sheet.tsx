@@ -48,7 +48,7 @@ export function Sheet({
             role="dialog"
             aria-modal="true"
             aria-label="Panel"
-            className="sheet touch-manipulation"
+            className="sheet touch-manipulation w-full max-w-full overflow-x-hidden"
             style={{ maxHeight }}
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
@@ -70,7 +70,7 @@ export function Sheet({
               <div className="h-1.5 w-10 rounded-full bg-white/25" />
             </div>
             <div
-              className="relative overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]"
+              className="sheet-scroll relative min-w-0 max-w-full overflow-x-hidden overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]"
               style={{ maxHeight: `calc(${maxHeight} - 52px)` }}
             >
               {children}

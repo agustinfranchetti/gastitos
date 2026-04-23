@@ -134,7 +134,7 @@ export function EditSubscriptionSheet({
   return (
     <Sheet open={open} onClose={onClose}>
       <div className="mb-4 flex items-center justify-between">
-        <div className="font-display text-2xl">
+        <div className="title-app text-2xl">
           {initial ? t("editSub.edit") : t("editSub.new")}
         </div>
         <button onClick={onClose} className="iconbtn">
@@ -370,7 +370,9 @@ export function Toggle({
       aria-checked={checked}
       onClick={() => onChange(!checked)}
       className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors ${
-        checked ? "bg-ember-500" : "bg-white/10"
+        checked
+          ? "bg-[rgb(var(--accent-500-rgb))]"
+          : "bg-zinc-300 dark:bg-white/10"
       }`}
     >
       <span

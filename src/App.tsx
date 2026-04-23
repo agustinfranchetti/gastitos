@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { addMonths, format, startOfMonth, subMonths } from "date-fns";
 import { Icon } from "./components/Icons";
 import { Logo } from "./components/Logo";
@@ -20,6 +20,7 @@ import { useI18n } from "./lib/i18n";
 import { PwaUpdateChip } from "./components/PwaUpdateChip";
 import { usePwaUpdate } from "./lib/usePwaUpdate";
 import { MonthYearPickerSheet } from "./components/MonthYearPickerSheet";
+import { applyAccentToDocument, applyAppearanceToDocument } from "./lib/theme";
 
 export default function App() {
   useAuth();
@@ -43,6 +44,17 @@ export default function App() {
   useEffect(() => {
     ensureSeed();
   }, []);
+
+  useLayoutEffect(() => {
+    if (!settings) {
+      applyAccentToDocument("orange");
+      // Until IndexedDB loads, follow system (so light mode is not stuck on <html class="dark">)
+      applyAppearanceToDocument(undefined);
+      return;
+    }
+    applyAccentToDocument(settings.accentPreset ?? "orange");
+    applyAppearanceToDocument(settings.appearance);
+  }, [settings]);
 
   // Auto-fetch FX on first load (and refresh if older than 6h).
   useEffect(() => {
@@ -108,7 +120,7 @@ export default function App() {
   }
 
   return (
-    <div className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col pb-28">
+    <div className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col bg-stone-100 pb-28 dark:bg-[#0a0806]">
       {needRefresh && (
         <PwaUpdateChip
           onUpdate={() => void applyUpdate()}
@@ -227,7 +239,7 @@ function Header({
   t: (k: string) => string;
 }) {
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top),12px)] pb-2 backdrop-blur-md">
+    <header className="sticky top-0 z-20 flex items-center justify-between border-b border-zinc-200/80 bg-stone-100/80 px-4 pb-2 pt-[max(env(safe-area-inset-top),12px)] backdrop-blur-md dark:border-transparent dark:bg-black/20">
       <button
         type="button"
         onClick={onOpenMonthPicker}
@@ -299,7 +311,7 @@ function UpcomingList({
 
   if (items.length === 0) {
     return (
-      <div className="mt-10 px-6 text-center text-sm text-white/35">
+      <div className="mt-10 px-6 text-center text-sm text-zinc-500 dark:text-white/35">
         {t("upcoming.empty")}
       </div>
     );
@@ -307,27 +319,27 @@ function UpcomingList({
 
   return (
     <div className="mt-6 px-4">
-      <div className="mb-2 text-[10px] uppercase tracking-[0.25em] text-white/30">
+      <div className="mb-2 text-[10px] uppercase tracking-[0.25em] text-zinc-500 dark:text-white/30">
         {t("upcoming.title")}
       </div>
-      <div className="divide-y divide-white/[0.04] rounded-xl border border-white/[0.05] bg-white/[0.02]">
+      <div className="divide-y divide-zinc-200/80 rounded-xl border border-zinc-200 bg-white/90 dark:divide-white/[0.04] dark:border-white/[0.05] dark:bg-white/[0.02]">
         {items.map(({ sub, date }, i) => (
           <button
             key={i}
             onClick={() => onPickSub(sub)}
-            className="flex w-full items-center gap-3 px-3 py-2.5 text-left active:bg-white/5"
+            className="flex w-full items-center gap-3 px-3 py-2.5 text-left active:bg-zinc-100 dark:active:bg-white/5"
           >
             <Logo sub={sub} token={token} size={32} rounded={10} />
             <div className="flex-1">
-              <div className="text-sm">{sub.name}</div>
-              <div className="text-[11px] text-white/40">
+              <div className="text-sm text-zinc-800 dark:text-white">{sub.name}</div>
+              <div className="text-[11px] text-zinc-500 dark:text-white/40">
                 {formatShortDay(date)}
                 {sub.currency !== displayCurrency && (
                   <> · {formatShort(priceOn(sub, date), sub.currency)}</>
                 )}
               </div>
             </div>
-            <div className="text-[15px] text-white/85 tabular-nums">
+            <div className="text-[15px] text-zinc-800 tabular-nums dark:text-white/85">
               {formatShort(
                 convert(priceOn(sub, date), sub.currency, displayCurrency, fx),
                 displayCurrency,

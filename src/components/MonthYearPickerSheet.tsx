@@ -91,7 +91,7 @@ export function MonthYearPickerSheet({ open, onClose, value, onChange }: Props) 
             aria-hidden
           />
           <div
-            className="pointer-events-none absolute inset-x-0 top-1/2 z-10 -mt-[22px] h-[44px] border-y border-ember-400/20 bg-white/[0.02]"
+            className="pointer-events-none absolute inset-x-0 top-1/2 z-10 -mt-[22px] h-[44px] border-y border-[color:rgb(var(--accent-500-rgb)/0.25)] bg-white/[0.02]"
             aria-hidden
           />
 

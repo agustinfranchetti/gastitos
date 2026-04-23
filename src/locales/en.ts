@@ -52,6 +52,16 @@ const en = {
   },
   settings: {
     title: "Settings",
+    back: "Back",
+    lookAndFeel: "Look & feel",
+    appearance: "Theme",
+    appearanceDark: "Dark",
+    appearanceLight: "Light",
+    appearanceSystem: "System",
+    accent: "Accent",
+    compactAmounts: "Short amounts (K / M)",
+    compactAmountsHelp:
+      "Large numbers show as $154K or $1,2M instead of full figures.",
     language: "Language",
     languageEn: "English",
     languageEs: "Español",

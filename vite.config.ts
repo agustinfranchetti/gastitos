@@ -6,7 +6,8 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: "autoUpdate",
+      /* `prompt` keeps the new SW in "waiting" so `onNeedRefresh` can show the update chip. */
+      registerType: "prompt",
       includeAssets: ["favicon.svg", "apple-touch-icon.png"],
       manifest: {
         name: "Gastitos — Subscriptions",
@@ -35,7 +36,6 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
-        mode: "development",
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/img\.logo\.dev\/.*/i,

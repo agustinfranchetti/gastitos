@@ -10,22 +10,64 @@ export function symbol(c: Currency): string {
   return SYMBOLS[c];
 }
 
-export function formatMoney(
+function formatMoneyFull(
   amount: number,
   currency: Currency,
-  opts: { compact?: boolean; showCode?: boolean } = {},
+  showCode: boolean,
 ): string {
-  const { compact = false, showCode = false } = opts;
-  const abs = Math.abs(amount);
-  const locale = currency === "EUR" ? "de-DE" : currency === "ARS" ? "es-AR" : "en-US";
+  const locale =
+    currency === "EUR" ? "de-DE" : currency === "ARS" ? "es-AR" : "en-US";
   const formatter = new Intl.NumberFormat(locale, {
-    minimumFractionDigits: abs >= 1000 && compact ? 0 : 2,
+    minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
   const s = formatter.format(amount);
   const sym = SYMBOLS[currency];
   const pre = currency === "EUR" ? `${sym}` : `${sym}`;
   return showCode ? `${pre}${s} ${currency}` : `${pre}${s}`;
+}
+
+/** $154K / $1.2M when |amount| ≥ 10_000 (compact path). */
+function formatMoneyCompact(
+  amount: number,
+  currency: Currency,
+  showCode: boolean,
+): string {
+  const abs = Math.abs(amount);
+  const sym = SYMBOLS[currency];
+  const sign = amount < 0 ? "−" : "";
+  const code = showCode ? ` ${currency}` : "";
+
+  if (abs < 10_000) {
+    return formatMoneyFull(amount, currency, showCode);
+  }
+
+  if (abs < 1_000_000) {
+    const v = amount / 1000;
+    const a = Math.abs(v);
+    let n: string;
+    if (a >= 100) n = a.toFixed(0);
+    else if (Number.isInteger(a)) n = a.toFixed(0);
+    else n = a.toFixed(1).replace(/\.0$/, "");
+    return `${sign}${sym}${n}K${code}`;
+  }
+
+  const v = amount / 1_000_000;
+  const a = Math.abs(v);
+  const n = Number.isInteger(a) ? a.toFixed(0) : a.toFixed(1).replace(/\.0$/, "");
+  return `${sign}${sym}${n}M${code}`;
+}
+
+export function formatMoney(
+  amount: number,
+  currency: Currency,
+  opts: { compact?: boolean; showCode?: boolean } = {},
+): string {
+  const { compact = false, showCode = false } = opts;
+  if (compact) {
+    return formatMoneyCompact(amount, currency, showCode);
+  }
+  return formatMoneyFull(amount, currency, showCode);
 }
 
 export function convert(

@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Icon } from "./Icons";
 import type { Currency } from "../lib/types";
 import { formatMoney, symbol } from "../lib/money";
+import { useSettings } from "../lib/hooks";
 import { CurrencyToggle } from "./CurrencyToggle";
 
 export function TotalBanner({
@@ -25,10 +26,31 @@ export function TotalBanner({
   nextLabel: string;
   highlight?: { name: string; amount: number; currency: Currency };
 }) {
-  const [main, frac] = formatMoney(total, currency)
-    .replace(symbol(currency), "")
-    .split(/[.,]/);
-  const sep = formatMoney(1.1, currency).includes(",") ? "," : ".";
+  const st = useSettings();
+  const useCompact = st?.useCompactAmounts !== false;
+  const fullStr = formatMoney(total, currency, { compact: useCompact });
+  const sym = symbol(currency);
+  const isCompactK =
+    useCompact && (fullStr.includes("K") || fullStr.includes("M"));
+  let main = "";
+  let frac: string | undefined;
+  if (!isCompactK) {
+    const parts = formatMoney(total, currency, { compact: useCompact })
+      .replace(sym, "")
+      .split(/[.,]/);
+    main = parts[0] ?? "";
+    frac = parts[1];
+  }
+  const sep = formatMoney(1.1, currency, { compact: false }).includes(",")
+    ? ","
+    : ".";
+  const compactBody = (() => {
+    if (!isCompactK) return "";
+    let s = fullStr;
+    if (s.startsWith("−")) s = s.slice(1);
+    if (s.startsWith(sym)) s = s.slice(sym.length);
+    return s;
+  })();
 
   return (
     <div className="relative px-4 pb-5 pt-1">
@@ -42,7 +64,7 @@ export function TotalBanner({
           >
             <Icon.ChevronLeft />
           </button>
-          <div className="min-w-0 flex-1 font-display text-[1.4rem] italic leading-tight text-white/90 sm:text-2xl">
+          <div className="title-hero min-w-0 flex-1 text-balance text-[1.4rem] leading-tight sm:text-2xl">
             {monthLabel}
           </div>
           <button
@@ -61,18 +83,43 @@ export function TotalBanner({
           transition={{ duration: 0.3 }}
           className="font-sans text-[52px] leading-none font-medium tracking-tight"
         >
-          <span className="text-white/40">{symbol(currency)}</span>
-          <span className="text-white">{main}</span>
-          {frac && <span className="text-white/40">{sep}{frac}</span>}
+          {isCompactK ? (
+            <>
+              {fullStr.startsWith("−") && (
+                <span className="text-zinc-900 dark:text-white">−</span>
+              )}
+              <span className="text-zinc-400 dark:text-white/40">{sym}</span>
+              <span className="text-zinc-900 dark:text-white">
+                {compactBody}
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="text-zinc-400 dark:text-white/40">{sym}</span>
+              <span className="text-zinc-900 dark:text-white">{main}</span>
+              {frac && (
+                <span className="text-zinc-400 dark:text-white/40">
+                  {sep}
+                  {frac}
+                </span>
+              )}
+            </>
+          )}
         </motion.div>
         <div className="mt-3 flex flex-col items-center gap-2">
           <CurrencyToggle value={currency} onChange={onChangeCurrency} />
           {highlight && (
-            <div className="inline-flex items-center gap-2 text-[12px] text-white/50">
-              <span className="h-1 w-1 rounded-full bg-ember-400" />
-              <span className="text-white/80">{highlight.name}</span>
-              <span className="text-white/30">·</span>
-              <span>{formatMoney(highlight.amount, highlight.currency)}</span>
+            <div className="inline-flex items-center gap-2 text-[12px] text-zinc-500 dark:text-white/50">
+              <span className="h-1 w-1 rounded-full bg-[rgb(var(--accent-400-rgb))]" />
+              <span className="text-zinc-800 dark:text-white/80">
+                {highlight.name}
+              </span>
+              <span className="text-zinc-400 dark:text-white/30">·</span>
+              <span>
+                {formatMoney(highlight.amount, highlight.currency, {
+                  compact: useCompact,
+                })}
+              </span>
             </div>
           )}
         </div>

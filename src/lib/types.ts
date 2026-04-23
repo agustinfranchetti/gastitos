@@ -1,5 +1,10 @@
 export type AppLocale = "en" | "es";
 
+/** Main accent; default `orange` (pure UI orange) */
+export type AccentPreset = "orange" | "amber" | "rose" | "emerald" | "violet";
+
+export type Appearance = "dark" | "light" | "system";
+
 export type Currency = "USD" | "EUR" | "ARS";
 
 export const CURRENCIES: Currency[] = ["ARS", "USD", "EUR"];
@@ -73,6 +78,12 @@ export interface Settings {
   id: "singleton";
   /** UI language. Defaults to English if missing. */
   language?: AppLocale;
+  /** Accent for titles, buttons, and focus. Default orange. */
+  accentPreset?: AccentPreset;
+  /** dark / light / follow system. Default dark. */
+  appearance?: Appearance;
+  /** Shorten large money as $154K, $1.2M. Default on. */
+  useCompactAmounts?: boolean;
   primaryCurrency: Currency;
   logoDevKey?: string;
   fx?: FxRates;

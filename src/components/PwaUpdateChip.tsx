@@ -13,10 +13,10 @@ export function PwaUpdateChip({
 
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 top-[calc(env(safe-area-inset-top)+3.25rem)] z-[45] flex justify-center px-3"
+      className="pointer-events-none fixed inset-x-0 top-[max(env(safe-area-inset-top),8px)] z-[100] flex justify-center px-3"
       role="status"
     >
-      <div className="pointer-events-auto flex w-full max-w-[min(100%-1.5rem,28rem)] items-center gap-1.5 rounded-full border border-amber-300/40 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 px-1 py-1 pl-3 shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
+      <div className="pointer-events-auto flex w-full max-w-[min(100%-1.5rem,28rem)] items-center gap-1.5 rounded-full border border-orange-200/50 bg-gradient-to-r from-orange-500 via-orange-500 to-orange-600 px-1 py-1 pl-3 shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
         <span className="min-w-0 flex-1 text-[11px] font-semibold leading-snug text-[#1a0f00] sm:text-[12px]">
           {t("app.updateAvailable")}
         </span>

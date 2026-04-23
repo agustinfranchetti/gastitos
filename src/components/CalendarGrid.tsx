@@ -66,7 +66,7 @@ export function CalendarGrid({
 
   return (
     <div className="overflow-hidden px-4">
-      <div className="grid grid-cols-7 gap-1.5 pb-2 text-center text-[10px] uppercase tracking-[0.25em] text-white/65">
+      <div className="grid grid-cols-7 gap-1.5 pb-2 text-center text-[10px] uppercase tracking-[0.25em] text-zinc-500 dark:text-white/65">
         {labels.map((l, i) => (
           <div key={i}>{l}</div>
         ))}
@@ -122,21 +122,21 @@ function Cell({
   return (
     <button
       onClick={onPick}
-      className={`relative aspect-square rounded-[12px] border p-1 text-left shadow-[0_1px_0_rgba(255,255,255,0.05),inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors ${
+      className={`relative aspect-square rounded-[12px] border p-1 text-left transition-colors ${
         today
-          ? "border-ember-400/60 bg-ember-500/10 ring-1 ring-ember-400/20"
+          ? "calendar-today"
           : empty
-            ? "border-white/15 bg-zinc-900/90 hover:border-white/25 hover:bg-zinc-800/80"
-            : "border-white/20 bg-white/[0.08] ring-1 ring-white/5"
-      } active:brightness-95`}
+            ? "border-zinc-200/90 bg-stone-100/90 shadow-sm hover:border-zinc-300 hover:bg-stone-200/80 dark:border-white/15 dark:bg-zinc-900/90 dark:shadow-[0_1px_0_rgba(255,255,255,0.05),inset_0_1px_0_rgba(255,255,255,0.04)] dark:hover:border-white/25 dark:hover:bg-zinc-800/80"
+            : "border-zinc-200/90 bg-white/90 ring-1 ring-zinc-200/80 dark:border-white/20 dark:bg-white/[0.08] dark:ring-white/5"
+      } active:brightness-95 shadow-[0_1px_0_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.45)] dark:shadow-[0_1px_0_rgba(255,255,255,0.05),inset_0_1px_0_rgba(255,255,255,0.04)]`}
     >
       <span
         className={`absolute left-1.5 top-1 text-[10px] font-medium ${
           empty
             ? today
-              ? "text-ember-200"
-              : "text-white/55"
-            : "text-white/80"
+              ? "calendar-daynum-today-empty"
+              : "text-zinc-500 dark:text-white/55"
+            : "text-zinc-700 dark:text-white/80"
         }`}
       >
         {dayNum}
@@ -148,7 +148,7 @@ function Cell({
             <Logo key={s.id} sub={s} token={token} size={16} rounded={4} />
           ))}
           {overflow > 0 && (
-            <span className="flex h-4 min-w-4 items-center justify-center rounded-[4px] bg-white/10 px-1 text-[9px] font-medium text-white/80">
+            <span className="flex h-4 min-w-4 items-center justify-center rounded-[4px] bg-zinc-200/80 px-1 text-[9px] font-medium text-zinc-700 dark:bg-white/10 dark:text-white/80">
               +{overflow}
             </span>
           )}

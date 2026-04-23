@@ -78,8 +78,8 @@ export function Logo({
           <span style={{ fontSize: size * 0.58 }}>{sub.emoji}</span>
         ) : (
           <span
-            className="font-display italic"
-            style={{ fontSize: size * 0.55, color: "#ffe9bf" }}
+            className="font-display font-semibold"
+            style={{ fontSize: size * 0.55, color: "#fff7e6" }}
           >
             {initial}
           </span>

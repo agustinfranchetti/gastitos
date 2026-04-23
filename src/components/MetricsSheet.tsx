@@ -34,6 +34,7 @@ export function MetricsSheet({
   const currency =
     displayCurrency ?? ((settings?.primaryCurrency ?? "ARS") as Currency);
   const fx = settings?.fx;
+  const moneyOpts = { compact: settings?.useCompactAmounts !== false } as const;
 
   const monthly = useMemo(() => {
     if (!subs) return 0;
@@ -102,26 +103,26 @@ export function MetricsSheet({
 
   return (
     <Sheet open={open} onClose={onClose} maxHeight="92vh">
-      <div className="mb-1 text-xs uppercase tracking-[0.2em] text-white/40">
+      <div className="mb-1 text-xs uppercase tracking-[0.2em] text-zinc-500 dark:text-white/40">
         {t("metrics.overview", {
           month: format(month, "MMM yyyy", { locale: dateLocale }),
         })}
       </div>
-      <div className="font-display text-3xl">{t("metrics.title")}</div>
+      <div className="title-app text-3xl">{t("metrics.title")}</div>
 
       <div className="mt-4 grid grid-cols-2 gap-3">
         <Stat
           label={t("metrics.thisMonth")}
-          value={formatMoney(monthly, currency)}
+          value={formatMoney(monthly, currency, moneyOpts)}
         />
         <Stat
           label={t("metrics.yearlyPace")}
-          value={formatMoney(yearly, currency)}
+          value={formatMoney(yearly, currency, moneyOpts)}
         />
       </div>
 
       <div className="mt-6">
-        <div className="mb-2 text-[10px] uppercase tracking-[0.25em] text-white/40">
+        <div className="mb-2 text-[10px] uppercase tracking-[0.25em] text-zinc-500 dark:text-white/40">
           {t("metrics.last6")}
         </div>
         <div className="tile flex h-44 gap-2 p-4">
@@ -132,26 +133,28 @@ export function MetricsSheet({
             >
               <div className="relative w-full flex-1">
                 <div
-                  className="absolute inset-x-0 bottom-0 rounded-t-md bg-gradient-to-t from-ember-700 to-ember-300"
+                  className="absolute inset-x-0 bottom-0 rounded-t-md bg-gradient-to-t from-[rgb(var(--accent-700-rgb))] to-[rgb(var(--accent-300-rgb))]"
                   style={{
                     height: `${m.total > 0 ? Math.max(4, (m.total / max6) * 100) : 0}%`,
                   }}
-                  title={formatMoney(m.total, currency)}
+                  title={formatMoney(m.total, currency, moneyOpts)}
                 />
               </div>
-              <div className="mt-2 text-[10px] text-white/50">{m.label}</div>
+              <div className="mt-2 text-[10px] text-zinc-500 dark:text-white/50">
+                {m.label}
+              </div>
             </div>
           ))}
         </div>
       </div>
 
       <div className="mt-6">
-        <div className="mb-2 text-[10px] uppercase tracking-[0.25em] text-white/40">
+        <div className="mb-2 text-[10px] uppercase tracking-[0.25em] text-zinc-500 dark:text-white/40">
           {t("metrics.byCategory")}
         </div>
         <div className="tile divide-y divide-white/5 overflow-hidden">
           {byCategory.length === 0 && (
-            <div className="px-4 py-3 text-sm text-white/40">
+            <div className="px-4 py-3 text-sm text-zinc-500 dark:text-white/40">
               {t("metrics.nothingDue")}
             </div>
           )}
@@ -167,8 +170,8 @@ export function MetricsSheet({
                     />
                     {c?.name ?? t("metrics.uncategorized")}
                   </span>
-                  <span className="text-white/80">
-                    {formatMoney(v, currency)}
+                  <span className="text-zinc-800 dark:text-white/80">
+                    {formatMoney(v, currency, moneyOpts)}
                   </span>
                 </div>
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/5">
@@ -187,12 +190,12 @@ export function MetricsSheet({
       </div>
 
       <div className="mb-10 mt-6">
-        <div className="mb-2 text-[10px] uppercase tracking-[0.25em] text-white/40">
+        <div className="mb-2 text-[10px] uppercase tracking-[0.25em] text-zinc-500 dark:text-white/40">
           {t("metrics.byPerson")}
         </div>
         <div className="tile divide-y divide-white/5 overflow-hidden">
           {byPerson.length === 0 && (
-            <div className="px-4 py-3 text-sm text-white/40">
+            <div className="px-4 py-3 text-sm text-zinc-500 dark:text-white/40">
               {t("metrics.nothingDue")}
             </div>
           )}
@@ -212,8 +215,8 @@ export function MetricsSheet({
                   </span>
                   {p?.name ?? t("metrics.unassigned")}
                 </span>
-                <span className="text-white/80">
-                  {formatMoney(v, currency)}
+                <span className="text-zinc-800 dark:text-white/80">
+                  {formatMoney(v, currency, moneyOpts)}
                 </span>
               </div>
             );
@@ -227,10 +230,12 @@ export function MetricsSheet({
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="tile p-4">
-      <div className="text-[10px] uppercase tracking-[0.25em] text-white/40">
+      <div className="text-[10px] uppercase tracking-[0.25em] text-zinc-500 dark:text-white/40">
         {label}
       </div>
-      <div className="mt-1 font-display text-[28px] leading-none">{value}</div>
+      <div className="mt-1 font-display text-[28px] font-semibold leading-none tabular-nums tracking-tight text-[color:rgb(var(--accent-700-rgb))] dark:text-[color:rgb(var(--accent-200-rgb))]">
+        {value}
+      </div>
     </div>
   );
 }

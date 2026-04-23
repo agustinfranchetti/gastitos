@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Sheet } from "./Sheet";
+import { CurrencyToggle } from "./CurrencyToggle";
 import { useCategories, usePeople, useSettings, useSubscriptions } from "../lib/hooks";
 import { useI18n } from "../lib/i18n";
 import { convert, formatMoney } from "../lib/money";
@@ -18,11 +19,14 @@ export function MetricsSheet({
   open,
   month,
   displayCurrency,
+  onChangeCurrency,
   onClose,
 }: {
   open: boolean;
   month: Date;
   displayCurrency?: Currency;
+  /** Same as home: switch display currency (ARS / USD / EUR) without leaving this sheet. */
+  onChangeCurrency?: (c: Currency) => void;
   onClose: () => void;
 }) {
   const settings = useSettings();
@@ -52,7 +56,9 @@ export function MetricsSheet({
         const perYear =
           s.cycle === "custom"
             ? 365 / Math.max(1, s.customEveryDays ?? 30)
-            : PER_YEAR[s.cycle];
+            : s.cycle === "onetime"
+              ? 0
+              : PER_YEAR[s.cycle];
         const price = priceOn(s, ref);
         return acc + convert(price * perYear, s.currency, currency, fx);
       }, 0);
@@ -109,6 +115,11 @@ export function MetricsSheet({
         })}
       </div>
       <div className="title-app text-3xl">{t("metrics.title")}</div>
+      {onChangeCurrency && (
+        <div className="mt-3 flex justify-center">
+          <CurrencyToggle value={currency} onChange={onChangeCurrency} />
+        </div>
+      )}
 
       <div className="mt-4 grid grid-cols-2 gap-3">
         <Stat

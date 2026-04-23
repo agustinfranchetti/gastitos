@@ -210,6 +210,7 @@ export default function App() {
         open={metricsOpen}
         month={month}
         displayCurrency={currency}
+        onChangeCurrency={setDisplayCurrency}
         onClose={() => setMetricsOpen(false)}
       />
 

@@ -157,6 +157,11 @@ const es = {
     delete: "Eliminar",
     addRaise: "Añadir aumento",
     raisesBadge: "+{n} aumentos",
+    notes: "Notas",
+    priceHistory: "Precio en el tiempo",
+    basePrice: "Precio inicial",
+    priceStep: "Ajuste",
+    yearlyNA: "—",
   },
   raise: {
     title: "Añadir aumento",
@@ -175,6 +180,7 @@ const es = {
     save: "Guardar aumento",
   },
   cycle: {
+    onetime: "Pago único",
     weekly: "Semanal",
     monthly: "Mensual",
     quarterly: "Trimestral",

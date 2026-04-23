@@ -12,7 +12,9 @@ export type BillingCycle =
   | "yearly"
   | "weekly"
   | "quarterly"
-  | "custom";
+  | "custom"
+  /** Single charge on start date (no renewals). */
+  | "onetime";
 
 export interface Person {
   id: string;

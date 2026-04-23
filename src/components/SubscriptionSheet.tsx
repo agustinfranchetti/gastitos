@@ -6,9 +6,11 @@ import { Icon } from "./Icons";
 import { db } from "../lib/db";
 import {
   applyRaise,
+  maxPaymentCount,
   nextPaymentAfter,
   paymentsRemaining,
   priceOn,
+  priceTimeline,
   totalSpentThroughDate,
 } from "../lib/billing";
 import { formatMoney } from "../lib/money";
@@ -46,8 +48,8 @@ export function SubscriptionSheet({
     () => (sub ? priceOn(sub, today) : 0),
     [sub, today],
   );
-  const yearly = useMemo(() => {
-    if (!sub) return 0;
+  const yearlyEq = useMemo(() => {
+    if (!sub || sub.cycle === "onetime") return null;
     const perYear: Record<string, number> = {
       weekly: 52,
       monthly: 12,
@@ -138,7 +140,10 @@ export function SubscriptionSheet({
             label={t("subscription.paymentsLeft")}
             value={t("subscription.paymentsLeftValue", {
               n: remaining,
-              m: sub.totalPayments ?? 0,
+              m:
+                maxPaymentCount(sub) === Infinity
+                  ? (sub.totalPayments ?? 0)
+                  : maxPaymentCount(sub),
             })}
           />
         )}
@@ -148,7 +153,9 @@ export function SubscriptionSheet({
         />
         <Row
           label={t("subscription.yearlyEq")}
-          value={money(yearly)}
+          value={
+            yearlyEq != null ? money(yearlyEq) : t("subscription.yearlyNA")
+          }
         />
         <Row
           label={t("subscription.category")}
@@ -173,6 +180,54 @@ export function SubscriptionSheet({
               : t("subscription.notifyOff")
           }
         />
+      </div>
+
+      {sub.notes?.trim() && (
+        <div className="mt-4 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-left">
+          <div className="text-[10px] font-medium uppercase tracking-wider text-white/45">
+            {t("subscription.notes")}
+          </div>
+          <p className="mt-2 text-sm leading-relaxed text-white/90 whitespace-pre-wrap">
+            {sub.notes.trim()}
+          </p>
+        </div>
+      )}
+
+      <div className="mt-4 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-left">
+        <div className="mb-3 text-[10px] font-medium uppercase tracking-wider text-white/45">
+          {t("subscription.priceHistory")}
+        </div>
+        <div className="space-y-3">
+          {priceTimeline(sub).map((row, i) => (
+            <div
+              key={`${row.date}-${i}`}
+              className="border-b border-white/[0.04] pb-3 last:border-0 last:pb-0"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="text-xs text-white/50">
+                    {format(parseISO(row.date), "d MMM yyyy", {
+                      locale: dateLocale,
+                    })}
+                  </div>
+                  <div className="mt-0.5 text-[11px] text-white/35">
+                    {row.isStart
+                      ? t("subscription.basePrice")
+                      : t("subscription.priceStep")}
+                  </div>
+                </div>
+                <div className="shrink-0 text-sm font-medium tabular-nums text-white/90">
+                  {money(row.amount)}
+                </div>
+              </div>
+              {row.note?.trim() && (
+                <div className="mt-1.5 text-xs text-white/45">
+                  {row.note.trim()}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="mt-4 flex gap-2">

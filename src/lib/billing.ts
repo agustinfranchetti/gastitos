@@ -15,8 +15,9 @@ import {
 } from "date-fns";
 import type { Raise, Subscription } from "./types";
 
-/** Max number of charge events; 0/undefined/negative = unlimited. */
+/** Max number of charge events; 0/undefined/negative = unlimited (onetime = 1). */
 export function maxPaymentCount(sub: Subscription): number {
+  if (sub.cycle === "onetime") return 1;
   const n = sub.totalPayments;
   if (n == null || n <= 0) return Infinity;
   return n;
@@ -40,16 +41,19 @@ export function nextPaymentAfter(sub: Subscription, from: Date): Date | null {
 }
 
 export function paymentsRemaining(sub: Subscription, from: Date): number | null {
-  if (!sub.totalPayments) return null;
+  const max = maxPaymentCount(sub);
+  if (max === Infinity && (sub.totalPayments == null || sub.totalPayments <= 0)) {
+    return null;
+  }
   const start = parseISO(sub.startDate);
   let d = start;
-  let count = 0;
-  for (let i = 0; i < 5000 && count < sub.totalPayments; i++) {
+  let paidBeforeFrom = 0;
+  for (let i = 0; i < 5000 && paidBeforeFrom < max; i++) {
     if (!isBefore(d, from) || isEqual(d, from)) break;
     d = advance(d, sub);
-    count++;
+    paidBeforeFrom++;
   }
-  return Math.max(0, sub.totalPayments - count);
+  return Math.max(0, max - paidBeforeFrom);
 }
 
 export function advance(d: Date, sub: Subscription): Date {
@@ -64,6 +68,8 @@ export function advance(d: Date, sub: Subscription): Date {
       return addYears(d, 1);
     case "custom":
       return addDays(d, Math.max(1, sub.customEveryDays ?? 30));
+    case "onetime":
+      return addYears(d, 100);
   }
 }
 
@@ -144,6 +150,27 @@ export function applyRaise(prev: number, r: Raise): number {
   if (typeof r.newPrice === "number") return r.newPrice;
   if (typeof r.percent === "number") return prev * (1 + r.percent / 100);
   return prev;
+}
+
+/** Chronological base price at start, then after each raise (for history UI). */
+export function priceTimeline(sub: Subscription): {
+  date: string;
+  amount: number;
+  note?: string;
+  isStart: boolean;
+}[] {
+  const sorted = [...(sub.raises ?? [])].sort((a, b) =>
+    a.date.localeCompare(b.date),
+  );
+  let p = sub.price;
+  const rows: { date: string; amount: number; note?: string; isStart: boolean }[] = [
+    { date: sub.startDate, amount: p, isStart: true },
+  ];
+  for (const r of sorted) {
+    p = applyRaise(p, r);
+    rows.push({ date: r.date, amount: p, note: r.note, isStart: false });
+  }
+  return rows;
 }
 
 export function daysUntil(from: Date, to: Date): number {

@@ -156,6 +156,11 @@ const en = {
     delete: "Delete",
     addRaise: "Add a raise",
     raisesBadge: "+{n} raises",
+    notes: "Notes",
+    priceHistory: "Price over time",
+    basePrice: "Starting price",
+    priceStep: "Adjustment",
+    yearlyNA: "—",
   },
   raise: {
     title: "Add a raise",
@@ -174,6 +179,7 @@ const en = {
     save: "Save raise",
   },
   cycle: {
+    onetime: "One-time",
     weekly: "Weekly",
     monthly: "Monthly",
     quarterly: "Quarterly",

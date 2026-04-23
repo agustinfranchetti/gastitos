@@ -78,6 +78,7 @@ export function EditSubscriptionSheet({
   const token = settings?.logoDevKey;
 
   const cycles: BillingCycle[] = [
+    "onetime",
     "weekly",
     "monthly",
     "quarterly",
@@ -94,6 +95,7 @@ export function EditSubscriptionSheet({
     const finalSub: Subscription = {
       ...draft,
       domain,
+      totalPayments: draft.cycle === "onetime" ? 1 : draft.totalPayments,
       createdAt: initial?.createdAt ?? now,
       updatedAt: now,
     };
@@ -182,9 +184,14 @@ export function EditSubscriptionSheet({
         <Field label={t("editSub.cycle")}>
           <Select
             value={draft.cycle}
-            onChange={(v) =>
-              setDraft({ ...draft, cycle: v as BillingCycle })
-            }
+            onChange={(v) => {
+              const next = v as BillingCycle;
+              setDraft({
+                ...draft,
+                cycle: next,
+                totalPayments: next === "onetime" ? 1 : draft.totalPayments,
+              });
+            }}
             options={cycles.map((c) => ({
               value: c,
               label: cycle(c),
@@ -246,22 +253,38 @@ export function EditSubscriptionSheet({
       </div>
 
       <div className="mt-3">
-        <Field label={t("editSub.endAfter")}>
-          <input
-            className="field"
-            type="number"
-            min={1}
-            placeholder={t("editSub.endAfterPh")}
-            value={draft.totalPayments ?? ""}
+        <Field label={t("editSub.notes")}>
+          <textarea
+            className="field min-h-[5rem] w-full resize-y"
+            placeholder={t("editSub.notesPh")}
+            value={draft.notes ?? ""}
             onChange={(e) =>
-              setDraft({
-                ...draft,
-                totalPayments: e.target.value ? Number(e.target.value) : null,
-              })
+              setDraft({ ...draft, notes: e.target.value || undefined })
             }
+            rows={3}
           />
         </Field>
       </div>
+
+      {draft.cycle !== "onetime" && (
+        <div className="mt-3">
+          <Field label={t("editSub.endAfter")}>
+            <input
+              className="field"
+              type="number"
+              min={1}
+              placeholder={t("editSub.endAfterPh")}
+              value={draft.totalPayments ?? ""}
+              onChange={(e) =>
+                setDraft({
+                  ...draft,
+                  totalPayments: e.target.value ? Number(e.target.value) : null,
+                })
+              }
+            />
+          </Field>
+        </div>
+      )}
 
       <div className="mt-5">
         <div className="mb-2 text-xs uppercase tracking-wider text-white/40">

@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Sheet } from "./Sheet";
 import { Icon } from "./Icons";
 import { db } from "../lib/db";
@@ -473,71 +473,97 @@ function DiscFieldTrigger({
   );
 }
 
-function PeopleEditor({ people }: { people: Person[] }) {
+function PersonRow({ p }: { p: Person }) {
   const { t } = useI18n();
-  const [name, setName] = useState("");
-  const [emoji, setEmoji] = useState("🙂");
-  const [color, setColor] = useState("#7c5cff");
-  const [picker, setPicker] = useState<null | "new" | string>(null);
+  const [name, setName] = useState(p.name);
+  const [color, setColor] = useState(p.color);
+  const [emoji, setEmoji] = useState(p.emoji?.trim() ?? "");
+  const [iconModalOpen, setIconModalOpen] = useState(false);
 
-  async function add() {
-    if (!name.trim()) return;
-    await db.people.add({
-      id: newId(),
-      name: name.trim(),
-      emoji: emoji.trim() || undefined,
-      color,
-    });
-    setName("");
+  useEffect(() => {
+    setName(p.name);
+    setColor(p.color);
+    setEmoji(p.emoji?.trim() ?? "");
+  }, [p.id, p.name, p.color, p.emoji]);
+
+  const sameName = name.trim() === p.name;
+  const sameColor = color === p.color;
+  const sameEmoji =
+    (emoji.trim() || undefined) === (p.emoji?.trim() || undefined);
+  const dirty = !sameName || !sameColor || !sameEmoji;
+
+  function rowCancel() {
+    setName(p.name);
+    setColor(p.color);
+    setEmoji(p.emoji?.trim() ?? "");
   }
 
-  const pickerOpen = picker != null;
-  const pickPerson = picker && picker !== "new" ? people.find((p) => p.id === picker) : undefined;
-  const initialColor =
-    picker === "new" ? color : (pickPerson?.color ?? "#7c5cff");
-  const initialEmoji =
-    picker === "new" ? emoji : (pickPerson?.emoji?.trim() ?? "");
+  async function rowSave() {
+    if (!name.trim()) return;
+    await db.people.update(p.id, {
+      name: name.trim(),
+      color,
+      emoji: emoji.trim() || undefined,
+    });
+  }
 
   return (
-    <div className="w-full min-w-0 space-y-2.5 overflow-x-hidden">
+    <>
       <DiscPickerModal
-        open={pickerOpen}
-        onClose={() => setPicker(null)}
-        initialColor={initialColor}
-        initialEmoji={initialEmoji}
+        open={iconModalOpen}
+        onClose={() => setIconModalOpen(false)}
+        initialColor={color}
+        initialEmoji={emoji}
         title={t("settings.discPickerTitle")}
         colorLabel={t("settings.discColor")}
         iconLabel={t("settings.discIcon")}
-        customHint={t("settings.customEmojiPh")}
         cancelLabel={t("common.cancel")}
         applyLabel={t("header.pickMonthDone")}
-        onSave={({ color: hex, emoji: em }) => {
-          const nextEmoji = em.trim() || undefined;
-          if (picker === "new") {
-            setColor(hex);
-            setEmoji(nextEmoji ?? "");
-            return;
-          }
-          if (picker) void db.people.update(picker, { color: hex, emoji: nextEmoji });
+        onSave={({ color: c, emoji: e }) => {
+          setColor(c);
+          setEmoji(e.trim());
         }}
       />
-      {people.map((p) => (
-        <div
-          key={p.id}
-          className="grid grid-cols-[2.25rem_minmax(0,1fr)_2.25rem] items-center gap-2"
+      <div
+        className={
+          "grid min-w-0 items-center " +
+          (dirty
+            ? "grid-cols-[2.25rem_minmax(0,1fr)_2.25rem_2.25rem] gap-1.5"
+            : "grid-cols-[2.25rem_minmax(0,1fr)_2.25rem] gap-2")
+        }
+      >
+        <DiscFieldTrigger
+          color={color}
+          onClick={() => setIconModalOpen(true)}
+          aria-label={t("settings.discPickerTitle")}
         >
-          <DiscFieldTrigger
-            color={p.color}
-            onClick={() => setPicker(p.id)}
-            aria-label={t("settings.discPickerTitle")}
-          >
-            {discChar(p.emoji, p.name)}
-          </DiscFieldTrigger>
-          <input
-            className="field min-w-0 w-full"
-            value={p.name}
-            onChange={(e) => db.people.update(p.id, { name: e.target.value })}
-          />
+          {discChar(emoji, name)}
+        </DiscFieldTrigger>
+        <input
+          className="field min-w-0 w-full !px-2 !py-1.5 !text-[13px] leading-tight"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        {dirty ? (
+          <>
+            <button
+              type="button"
+              className="iconbtn shrink-0 justify-self-end"
+              onClick={rowCancel}
+              aria-label={t("common.cancel")}
+            >
+              <Icon.X className="!h-5 !w-5" />
+            </button>
+            <button
+              type="button"
+              className="iconbtn shrink-0 justify-self-end !border-[color:rgb(var(--accent-500-rgb))] !bg-[color:rgb(var(--accent-500-rgb))] !text-white"
+              onClick={() => void rowSave()}
+              aria-label={t("editSub.save")}
+            >
+              <Icon.Check className="!h-5 !w-5" />
+            </button>
+          </>
+        ) : (
           <button
             type="button"
             className="iconbtn shrink-0 justify-self-end"
@@ -550,18 +576,60 @@ function PeopleEditor({ people }: { people: Person[] }) {
           >
             <Icon.Trash />
           </button>
-        </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+function PeopleEditor({ people }: { people: Person[] }) {
+  const { t } = useI18n();
+  const [name, setName] = useState("");
+  const [emoji, setEmoji] = useState("🙂");
+  const [color, setColor] = useState("#7c5cff");
+  const [newPicker, setNewPicker] = useState(false);
+
+  async function add() {
+    if (!name.trim()) return;
+    await db.people.add({
+      id: newId(),
+      name: name.trim(),
+      emoji: emoji.trim() || undefined,
+      color,
+    });
+    setName("");
+  }
+
+  return (
+    <div className="w-full min-w-0 space-y-2.5 overflow-x-hidden">
+      <DiscPickerModal
+        open={newPicker}
+        onClose={() => setNewPicker(false)}
+        initialColor={color}
+        initialEmoji={emoji}
+        title={t("settings.discPickerTitle")}
+        colorLabel={t("settings.discColor")}
+        iconLabel={t("settings.discIcon")}
+        cancelLabel={t("common.cancel")}
+        applyLabel={t("header.pickMonthDone")}
+        onSave={({ color: hex, emoji: em }) => {
+          setColor(hex);
+          setEmoji(em.trim() || "🙂");
+        }}
+      />
+      {people.map((p) => (
+        <PersonRow key={p.id} p={p} />
       ))}
       <div className="grid grid-cols-[2.25rem_minmax(0,1fr)_2.25rem] items-center gap-2 border-t border-white/10 pt-2.5">
         <DiscFieldTrigger
           color={color}
-          onClick={() => setPicker("new")}
+          onClick={() => setNewPicker(true)}
           aria-label={t("settings.discPickerTitle")}
         >
           {discChar(emoji, name)}
         </DiscFieldTrigger>
         <input
-          className="field min-w-0 w-full"
+          className="field min-w-0 w-full !px-2 !py-1.5 !text-[13px]"
           placeholder={t("settings.addPerson")}
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -583,75 +651,97 @@ function PeopleEditor({ people }: { people: Person[] }) {
   );
 }
 
-function CategoriesEditor({ cats }: { cats: Category[] }) {
+function CategoryRow({ c }: { c: Category }) {
   const { t } = useI18n();
-  const [name, setName] = useState("");
-  const [color, setColor] = useState("#2dd4bf");
-  const [emoji, setEmoji] = useState("🏷️");
-  const [picker, setPicker] = useState<null | "new" | string>(null);
+  const [name, setName] = useState(c.name);
+  const [color, setColor] = useState(c.color);
+  const [emoji, setEmoji] = useState(c.emoji?.trim() ?? "");
+  const [iconModalOpen, setIconModalOpen] = useState(false);
 
-  async function add() {
+  useEffect(() => {
+    setName(c.name);
+    setColor(c.color);
+    setEmoji(c.emoji?.trim() ?? "");
+  }, [c.id, c.name, c.color, c.emoji]);
+
+  const sameName = name.trim() === c.name;
+  const sameColor = color === c.color;
+  const sameEmoji =
+    (emoji.trim() || undefined) === (c.emoji?.trim() || undefined);
+  const dirty = !sameName || !sameColor || !sameEmoji;
+
+  function rowCancel() {
+    setName(c.name);
+    setColor(c.color);
+    setEmoji(c.emoji?.trim() ?? "");
+  }
+
+  async function rowSave() {
     if (!name.trim()) return;
-    await db.categories.add({
-      id: newId(),
+    await db.categories.update(c.id, {
       name: name.trim(),
       color,
       emoji: emoji.trim() || undefined,
     });
-    setName("");
   }
 
-  const pickerOpen = picker != null;
-  const pickCat = picker && picker !== "new" ? cats.find((c) => c.id === picker) : undefined;
-  const initialColor =
-    picker === "new" ? color : (pickCat?.color ?? "#2dd4bf");
-  const initialEmoji =
-    picker === "new" ? emoji : (pickCat?.emoji?.trim() ?? "");
-
   return (
-    <div className="w-full min-w-0 space-y-2.5 overflow-x-hidden">
+    <>
       <DiscPickerModal
-        open={pickerOpen}
-        onClose={() => setPicker(null)}
-        initialColor={initialColor}
-        initialEmoji={initialEmoji}
+        open={iconModalOpen}
+        onClose={() => setIconModalOpen(false)}
+        initialColor={color}
+        initialEmoji={emoji}
         title={t("settings.discPickerTitle")}
         colorLabel={t("settings.discColor")}
         iconLabel={t("settings.discIcon")}
-        customHint={t("settings.customEmojiPh")}
         cancelLabel={t("common.cancel")}
         applyLabel={t("header.pickMonthDone")}
-        onSave={({ color: hex, emoji: em }) => {
-          const nextEmoji = em.trim() || undefined;
-          if (picker === "new") {
-            setColor(hex);
-            setEmoji(nextEmoji ?? "");
-            return;
-          }
-          if (picker) {
-            void db.categories.update(picker, { color: hex, emoji: nextEmoji });
-          }
+        onSave={({ color: h, emoji: e }) => {
+          setColor(h);
+          setEmoji(e.trim());
         }}
       />
-      {cats.map((c) => (
-        <div
-          key={c.id}
-          className="grid grid-cols-[2.25rem_minmax(0,1fr)_2.25rem] items-center gap-2"
+      <div
+        className={
+          "grid min-w-0 items-center " +
+          (dirty
+            ? "grid-cols-[2.25rem_minmax(0,1fr)_2.25rem_2.25rem] gap-1.5"
+            : "grid-cols-[2.25rem_minmax(0,1fr)_2.25rem] gap-2")
+        }
+      >
+        <DiscFieldTrigger
+          color={color}
+          onClick={() => setIconModalOpen(true)}
+          aria-label={t("settings.discPickerTitle")}
         >
-          <DiscFieldTrigger
-            color={c.color}
-            onClick={() => setPicker(c.id)}
-            aria-label={t("settings.discPickerTitle")}
-          >
-            {discChar(c.emoji, c.name)}
-          </DiscFieldTrigger>
-          <input
-            className="field min-w-0 w-full"
-            value={c.name}
-            onChange={(e) =>
-              db.categories.update(c.id, { name: e.target.value })
-            }
-          />
+          {discChar(emoji, name)}
+        </DiscFieldTrigger>
+        <input
+          className="field min-w-0 w-full !px-2 !py-1.5 !text-[13px] leading-tight"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        {dirty ? (
+          <>
+            <button
+              type="button"
+              className="iconbtn shrink-0 justify-self-end"
+              onClick={rowCancel}
+              aria-label={t("common.cancel")}
+            >
+              <Icon.X className="!h-5 !w-5" />
+            </button>
+            <button
+              type="button"
+              className="iconbtn shrink-0 justify-self-end !border-[color:rgb(var(--accent-500-rgb))] !bg-[color:rgb(var(--accent-500-rgb))] !text-white"
+              onClick={() => void rowSave()}
+              aria-label={t("editSub.save")}
+            >
+              <Icon.Check className="!h-5 !w-5" />
+            </button>
+          </>
+        ) : (
           <button
             type="button"
             className="iconbtn shrink-0 justify-self-end"
@@ -664,18 +754,60 @@ function CategoriesEditor({ cats }: { cats: Category[] }) {
           >
             <Icon.Trash />
           </button>
-        </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+function CategoriesEditor({ cats }: { cats: Category[] }) {
+  const { t } = useI18n();
+  const [name, setName] = useState("");
+  const [color, setColor] = useState("#2dd4bf");
+  const [emoji, setEmoji] = useState("🏷️");
+  const [newPicker, setNewPicker] = useState(false);
+
+  async function add() {
+    if (!name.trim()) return;
+    await db.categories.add({
+      id: newId(),
+      name: name.trim(),
+      color,
+      emoji: emoji.trim() || undefined,
+    });
+    setName("");
+  }
+
+  return (
+    <div className="w-full min-w-0 space-y-2.5 overflow-x-hidden">
+      <DiscPickerModal
+        open={newPicker}
+        onClose={() => setNewPicker(false)}
+        initialColor={color}
+        initialEmoji={emoji}
+        title={t("settings.discPickerTitle")}
+        colorLabel={t("settings.discColor")}
+        iconLabel={t("settings.discIcon")}
+        cancelLabel={t("common.cancel")}
+        applyLabel={t("header.pickMonthDone")}
+        onSave={({ color: hex, emoji: em }) => {
+          setColor(hex);
+          setEmoji(em.trim() || "🏷️");
+        }}
+      />
+      {cats.map((c) => (
+        <CategoryRow key={c.id} c={c} />
       ))}
       <div className="grid grid-cols-[2.25rem_minmax(0,1fr)_2.25rem] items-center gap-2 border-t border-white/10 pt-2.5">
         <DiscFieldTrigger
           color={color}
-          onClick={() => setPicker("new")}
+          onClick={() => setNewPicker(true)}
           aria-label={t("settings.discPickerTitle")}
         >
           {discChar(emoji, name)}
         </DiscFieldTrigger>
         <input
-          className="field min-w-0 w-full"
+          className="field min-w-0 w-full !px-2 !py-1.5 !text-[13px]"
           placeholder={t("settings.addCategory")}
           value={name}
           onChange={(e) => setName(e.target.value)}

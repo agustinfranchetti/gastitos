@@ -37,6 +37,12 @@ export const EMOJI_SUGGESTIONS = [
   "🎸",
 ] as const;
 
+function snapEmojiToGrid(emoji: string) {
+  const t = emoji.trim();
+  if ((EMOJI_SUGGESTIONS as readonly string[]).includes(t)) return t;
+  return EMOJI_SUGGESTIONS[0];
+}
+
 type DiscPickerModalProps = {
   open: boolean;
   onClose: () => void;
@@ -46,7 +52,6 @@ type DiscPickerModalProps = {
   title: string;
   colorLabel: string;
   iconLabel: string;
-  customHint: string;
   cancelLabel: string;
   applyLabel: string;
 };
@@ -60,7 +65,6 @@ export function DiscPickerModal({
   title,
   colorLabel,
   iconLabel,
-  customHint,
   cancelLabel,
   applyLabel,
 }: DiscPickerModalProps) {
@@ -72,7 +76,7 @@ export function DiscPickerModal({
   useEffect(() => {
     if (open) {
       setColor(initialColor);
-      setEmoji(initialEmoji);
+      setEmoji(snapEmojiToGrid(initialEmoji));
     }
   }, [open, initialColor, initialEmoji]);
 
@@ -135,7 +139,7 @@ export function DiscPickerModal({
             <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-500 dark:text-white/45">
               {iconLabel}
             </p>
-            <div className="mb-2 grid grid-cols-6 gap-1.5 sm:grid-cols-8">
+            <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-8">
               {EMOJI_SUGGESTIONS.map((e) => (
                 <button
                   key={e}
@@ -152,13 +156,6 @@ export function DiscPickerModal({
                 </button>
               ))}
             </div>
-            <input
-              className="field w-full"
-              value={emoji}
-              onChange={(e) => setEmoji(e.target.value)}
-              placeholder={customHint}
-              maxLength={12}
-            />
           </div>
 
           <div className="flex gap-2">

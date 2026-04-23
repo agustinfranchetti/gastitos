@@ -104,7 +104,6 @@ const en = {
     discPickerTitle: "Icon & color",
     discColor: "Color",
     discIcon: "Icon",
-    customEmojiPh: "Type or paste an emoji",
     deletePersonConfirm: "Delete {name}?",
     deleteCategoryConfirm: "Delete the category “{name}”?",
   },

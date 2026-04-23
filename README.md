@@ -40,15 +40,16 @@ Open `http://localhost:5173`.
 
 1. Create a free project at <https://supabase.com>.
 2. Open **SQL editor** and run the migration in `supabase/schema.sql` (creates 4 tables with RLS by `auth.uid()`).
-3. **Authentication → URL configuration**: set **Site URL** to your production app (e.g. `https://afranchetti-gastitos.vercel.app`). Under **Redirect URLs**, add that URL and `http://localhost:5173` for local dev. **Authentication → Providers → Email**: enable email sign-in; ensure **email OTP** / one-time code is available (not magic-link–only) so it matches the in-app code flow.
-4. Copy your **Project URL** and **anon public key** into `.env`:
+3. **Authentication → URL configuration**: set **Site URL** to your production app (e.g. `https://afranchetti-gastitos.vercel.app`). Under **Redirect URLs**, add that URL and `http://localhost:5173` for local dev. **Authentication → Providers → Email**: enable email sign-in.
+4. **Email template:** To show the one-time code in the email body, edit **Authentication → Email templates → Magic link** and include `{{ .Token }}` ([details](https://supabase.com/docs/guides/auth/auth-email-passwordless#with-otp)). Supabase may send 6- or 8-digit codes depending on version/settings.
+5. Copy your **Project URL** and **anon public key** into `.env`:
 
    ```
    VITE_SUPABASE_URL=...
    VITE_SUPABASE_ANON_KEY=...
    ```
 
-5. Restart dev server. In the app, open **Settings → Account**, enter your email, paste the 6-digit code from the email. From then on, every local change is pushed upstream and realtime changes from any other device flow back in.
+6. Restart dev server. In the app, open **Settings → Account**, enter your email, then paste the code from the email. From then on, every local change is pushed upstream and realtime changes from any other device flow back in.
 
 If you leave `.env` unset the app still works — just as a local-only PWA.
 

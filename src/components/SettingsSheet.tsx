@@ -192,6 +192,8 @@ function AccountSection() {
   const [phase, setPhase] = useState<"email" | "otp">("email");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const otpDigits = otp.replace(/\D/g, "");
+  const otpReady = otpDigits.length === 6 || otpDigits.length === 8;
 
   async function sendCode() {
     if (!supabase || !email.trim()) return;
@@ -214,8 +216,8 @@ function AccountSection() {
 
   async function verify() {
     if (!supabase || !email.trim()) return;
-    const token = otp.replace(/\D/g, "").slice(0, 6);
-    if (token.length !== 6) return;
+    const token = otpDigits.slice(0, 8);
+    if (!otpReady) return;
     setBusy(true);
     setErr(null);
     const { error } = await supabase.auth.verifyOtp({
@@ -266,17 +268,17 @@ function AccountSection() {
               type="text"
               inputMode="numeric"
               autoComplete="one-time-code"
-              maxLength={6}
+              maxLength={8}
               placeholder={t("settings.otpPlaceholder")}
               value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/[^\d]/g, ""))}
+              onChange={(e) => setOtp(e.target.value.replace(/[^\d]/g, "").slice(0, 8))}
             />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={() => void verify()}
-              disabled={busy || otp.replace(/\D/g, "").length !== 6}
+              disabled={busy || !otpReady}
               className="btn-primary !py-2 text-xs"
             >
               {busy ? t("settings.busy") : t("settings.verify")}

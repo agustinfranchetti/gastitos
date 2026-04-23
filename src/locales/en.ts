@@ -12,6 +12,7 @@ const en = {
   header: {
     prevMonth: "Previous month",
     nextMonth: "Next month",
+    backToCurrentMonth: "Go to current month",
     pickMonth: "Choose month",
     pickMonthYear: "Go to month",
     pickMonthHint: "Scroll and tap Done.",

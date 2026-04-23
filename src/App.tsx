@@ -1,5 +1,11 @@
 import { useEffect, useLayoutEffect, useMemo, useState } from "react";
-import { addMonths, format, startOfMonth, subMonths } from "date-fns";
+import {
+  addMonths,
+  format,
+  isSameMonth,
+  startOfMonth,
+  subMonths,
+} from "date-fns";
 import { Icon } from "./components/Icons";
 import { Logo } from "./components/Logo";
 import { TotalBanner } from "./components/TotalBanner";
@@ -86,6 +92,7 @@ export default function App() {
   const currency = displayCurrency ?? primary;
   const fx = settings?.fx;
   const token = settings?.logoDevKey;
+  const isViewingCurrentMonth = isSameMonth(month, new Date());
 
   const { total, highlight } = useMemo(() => {
     if (!subs) return { total: 0, highlight: undefined };
@@ -139,6 +146,9 @@ export default function App() {
       <div className="flex min-h-0 flex-1 flex-col pt-5">
         <TotalBanner
           monthLabel={formatMonth(month)}
+          isViewingCurrentMonth={isViewingCurrentMonth}
+          onGoToCurrentMonth={() => setMonth(startOfMonth(new Date()))}
+          backToCurrentMonthLabel={t("header.backToCurrentMonth")}
           total={total}
           currency={currency}
           onChangeCurrency={setDisplayCurrency}

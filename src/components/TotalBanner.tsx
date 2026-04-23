@@ -7,6 +7,9 @@ import { CurrencyToggle } from "./CurrencyToggle";
 
 export function TotalBanner({
   monthLabel,
+  isViewingCurrentMonth,
+  onGoToCurrentMonth,
+  backToCurrentMonthLabel,
   total,
   currency,
   onChangeCurrency,
@@ -17,6 +20,9 @@ export function TotalBanner({
   highlight,
 }: {
   monthLabel: string;
+  isViewingCurrentMonth: boolean;
+  onGoToCurrentMonth: () => void;
+  backToCurrentMonthLabel: string;
   total: number;
   currency: Currency;
   onChangeCurrency: (c: Currency) => void;
@@ -76,6 +82,17 @@ export function TotalBanner({
             <Icon.ChevronRight />
           </button>
         </div>
+        {!isViewingCurrentMonth && (
+          <div className="mb-2 flex justify-center">
+            <button
+              type="button"
+              onClick={onGoToCurrentMonth}
+              className="rounded-full border border-[color:rgb(var(--accent-500-rgb)/0.35)] bg-white/[0.04] px-3 py-1 text-[11px] font-medium tracking-wide text-[color:rgb(var(--accent-300-rgb))] transition-colors active:bg-white/10"
+            >
+              {backToCurrentMonthLabel}
+            </button>
+          </div>
+        )}
         <motion.div
           key={total.toFixed(2) + currency}
           initial={{ opacity: 0, y: 4 }}

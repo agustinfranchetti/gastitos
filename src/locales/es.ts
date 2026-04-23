@@ -14,6 +14,7 @@ const es = {
   header: {
     prevMonth: "Mes anterior",
     nextMonth: "Mes siguiente",
+    backToCurrentMonth: "Ir al mes actual",
     pickMonth: "Elegir mes",
     pickMonthYear: "Ir a un mes",
     pickMonthHint: "Desliza y pulsa Listo.",

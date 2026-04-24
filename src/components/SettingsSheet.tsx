@@ -3,7 +3,6 @@ import { Sheet } from "./Sheet";
 import { Icon } from "./Icons";
 import { db } from "../lib/db";
 import { supabase, supabaseEnabled } from "../lib/supabase";
-import { useAuth } from "../lib/useAuth";
 import { fetchFxRates, oneUnitInCurrency } from "../lib/money";
 import {
   ACCENT_PICKER_STYLE,
@@ -12,6 +11,7 @@ import {
 } from "../lib/theme";
 import type { Category, Currency, Person, Settings } from "../lib/types";
 import { useCategories, usePeople, useSettings } from "../lib/hooks";
+import { useAuth } from "../lib/useAuth";
 import { newId } from "../lib/id";
 import { useI18n } from "../lib/i18n";
 import { requestNotificationPermission } from "../lib/notify";
@@ -43,15 +43,19 @@ function formatFxTableAmount(n: number): string {
 export function SettingsSheet({
   open,
   onClose,
+  readOnly,
   onCheckPwaUpdate,
   pwaUpdateChecking,
 }: {
   open: boolean;
   onClose: () => void;
+  /** Demo mode: UI is read-only. */
+  readOnly?: boolean;
   /** Manual PWA “check for update” (service worker). */
   onCheckPwaUpdate?: () => void | Promise<void>;
   pwaUpdateChecking?: boolean;
 }) {
+  const ro = readOnly;
   const settings = useSettings();
   const people = usePeople();
   const cats = useCategories();
@@ -61,13 +65,19 @@ export function SettingsSheet({
 
   if (!settings) return null;
 
+  const roClass = ro
+    ? "pointer-events-none select-none opacity-[0.88]"
+    : "";
+
   async function patch(p: Partial<Settings>) {
+    if (ro) return;
     await db.settings.update("singleton", p);
     const s = await db.settings.get("singleton");
     syncDocumentAccentFromSettings(s);
   }
 
   async function refreshFx() {
+    if (ro) return;
     setFxLoading(true);
     setFxError(null);
     try {
@@ -87,6 +97,7 @@ export function SettingsSheet({
   }
 
   async function toggleNotifications(v: boolean) {
+    if (ro) return;
     if (v) {
       const perm = await requestNotificationPermission();
       await patch({ notificationsEnabled: perm === "granted" });
@@ -104,9 +115,18 @@ export function SettingsSheet({
             <Icon.X />
           </button>
         </div>
-        <div className="flex flex-col gap-5" aria-label={t("settings.title")}>
+        {ro && (
+          <p className="mb-1 rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2.5 text-[12px] text-amber-100/90">
+            {t("settings.demoReadOnly")}
+          </p>
+        )}
+
+        <div
+          className={`flex flex-col gap-5 ${roClass}`}
+          aria-label={t("settings.title")}
+        >
           {supabaseEnabled && (
-            <section>
+            <section aria-label={t("settings.categoryAccount")}>
               <SettingsCategoryLabel>{t("settings.categoryAccount")}</SettingsCategoryLabel>
               <div className="mt-1.5">
                 <AccountContent />

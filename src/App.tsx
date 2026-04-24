@@ -28,9 +28,15 @@ import { PwaUpdateChip } from "./components/PwaUpdateChip";
 import { usePwaUpdate } from "./lib/usePwaUpdate";
 import { MonthYearPickerSheet } from "./components/MonthYearPickerSheet";
 import { syncDocumentAccentFromSettings } from "./lib/theme";
+import { useDemoMode } from "./lib/demoMode";
 
 export default function App() {
-  useAuth();
+  const { user } = useAuth();
+  const { isDemo, exitDemo } = useDemoMode();
+
+  useEffect(() => {
+    if (user && isDemo) exitDemo();
+  }, [user, isDemo, exitDemo]);
   const { t, formatMonth, formatShortDay } = useI18n();
   const { needRefresh, applyUpdate, dismiss, checkForUpdate, isChecking: pwaCheckBusy } =
     usePwaUpdate();
@@ -71,6 +77,7 @@ export default function App() {
   // Auto-fetch FX on first load (and refresh if older than 6h). Not tied to primary currency
   // (see settings reference table); fetches the canonical USD-based triangle.
   useEffect(() => {
+    if (isDemo) return;
     if (!settings) return;
     const stale =
       !settings.fx ||
@@ -80,9 +87,10 @@ export default function App() {
     fetchFxRates()
       .then((fx) => db.settings.update("singleton", { fx }))
       .catch((e) => console.warn("[fx] fetch failed", e));
-  }, [settings, settings?.fx?.fetchedAt]);
+  }, [isDemo, settings, settings?.fx?.fetchedAt]);
 
   useEffect(() => {
+    if (isDemo) return;
     const run = () => scanAndNotify().catch(() => {});
     run();
     const onVis = () => {
@@ -90,7 +98,7 @@ export default function App() {
     };
     document.addEventListener("visibilitychange", onVis);
     return () => document.removeEventListener("visibilitychange", onVis);
-  }, [settings?.notificationsEnabled]);
+  }, [isDemo, settings?.notificationsEnabled]);
 
   const primary = (settings?.primaryCurrency ?? "ARS") as Currency;
   /** Home total + list under calendar; metrics use `metricsCurrency` */
@@ -134,6 +142,19 @@ export default function App() {
         t={t}
       />
 
+      {isDemo && (
+        <div className="flex items-center gap-2 border-b border-white/10 bg-[color:rgb(var(--accent-500-rgb)/0.12)] px-4 py-2.5 text-[12px] leading-snug text-zinc-200">
+          <span className="min-w-0 flex-1">{t("demoMode.bar")}</span>
+          <button
+            type="button"
+            onClick={() => exitDemo()}
+            className="shrink-0 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-medium text-white/90 active:bg-white/20"
+          >
+            {t("demoMode.exit")}
+          </button>
+        </div>
+      )}
+
       <div className="flex min-h-0 flex-1 flex-col pt-5">
         <TotalBanner
           monthLabel={formatMonth(month)}
@@ -171,12 +192,17 @@ export default function App() {
         </div>
       </div>
 
-      <AddFab label={t("addFab.label")} onClick={() => openNewFor(null)} />
+      <AddFab
+        label={t("addFab.label")}
+        disabled={isDemo}
+        onClick={() => openNewFor(null)}
+      />
 
       <DaySheet
         date={day}
         subs={subs ?? []}
         token={token}
+        addDisabled={isDemo}
         onClose={() => setDay(null)}
         onPickSub={(s) => {
           setDay(null);
@@ -191,6 +217,7 @@ export default function App() {
       <SubscriptionSheet
         sub={picked}
         token={token}
+        readOnly={isDemo}
         onClose={() => setPicked(null)}
         onEdit={(s) => {
           setPicked(null);
@@ -204,6 +231,7 @@ export default function App() {
         open={editOpen}
         initial={editing}
         seedStartDate={editSeedDate}
+        readOnly={isDemo}
         onClose={() => setEditOpen(false)}
       />
 
@@ -217,6 +245,7 @@ export default function App() {
 
       <SettingsSheet
         open={settingsOpen}
+        readOnly={isDemo}
         onClose={() => setSettingsOpen(false)}
         onCheckPwaUpdate={checkForUpdate}
         pwaUpdateChecking={pwaCheckBusy}
@@ -275,10 +304,24 @@ function Header({
   );
 }
 
-function AddFab({ label, onClick }: { label: string; onClick: () => void }) {
+function AddFab({
+  label,
+  onClick,
+  disabled,
+}: {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
   return (
     <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),16px)] z-30 flex justify-center px-4">
-      <button onClick={onClick} className="btn-primary !px-5 !py-3">
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        className="btn-primary !px-5 !py-3 disabled:pointer-events-none disabled:opacity-35"
+        aria-disabled={disabled}
+      >
         <Icon.Plus /> {label}
       </button>
     </div>

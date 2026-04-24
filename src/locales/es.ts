@@ -5,6 +5,7 @@ const es = {
     add: "Añadir",
     never: "nunca",
     cancel: "Cancelar",
+    close: "Cerrar",
   },
   app: {
     updateAvailable: "Hay una nueva versión.",
@@ -21,6 +22,11 @@ const es = {
     pickMonthDone: "Listo",
     metrics: "Métricas",
     settings: "Ajustes",
+  },
+  demoMode: {
+    active: "Demo",
+    bar: "Solo lectura, datos de ejemplo. Entrá a /demo en la barra de URL. No se guarda nada.",
+    exit: "Volver a la app",
   },
   banner: {
     monthNames: "MMMM yyyy",
@@ -77,6 +83,7 @@ const es = {
     account: "Cuenta",
     signedInSync: "Sesión iniciada; se sincroniza con conexión",
     signInHint: "Inicia sesión con tu correo para sincronizar este dispositivo.",
+    demoReadOnly: "Solo lectura en /demo. Usá «Volver a la app» arriba para volver a tus datos.",
     otpHint: "Enviamos un código de un solo uso a {email}.",
     sendCode: "Enviar código",
     enterCode: "Código",

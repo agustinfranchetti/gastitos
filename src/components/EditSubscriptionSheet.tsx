@@ -48,11 +48,14 @@ export function EditSubscriptionSheet({
   open,
   initial,
   seedStartDate,
+  readOnly,
   onClose,
 }: {
   open: boolean;
   initial: Subscription | null;
   seedStartDate?: string | null;
+  /** Demo mode: no persist; single close action in footer. */
+  readOnly?: boolean;
   onClose: () => void;
 }) {
   const settings = useSettings();
@@ -91,6 +94,10 @@ export function EditSubscriptionSheet({
   ];
 
   async function save() {
+    if (readOnly) {
+      onClose();
+      return;
+    }
     if (!draft.name.trim()) return;
     const now = new Date().toISOString();
     const domain =
@@ -143,12 +150,20 @@ export function EditSubscriptionSheet({
       onClose={onClose}
       footer={
         <div className="flex gap-2">
-          <button onClick={onClose} className="btn-ghost flex-1">
-            {t("editSub.cancel")}
-          </button>
-          <button onClick={save} className="btn-primary flex-1">
-            <Icon.Check /> {t("editSub.save")}
-          </button>
+          {readOnly ? (
+            <button onClick={onClose} className="btn-primary w-full">
+              {t("common.close")}
+            </button>
+          ) : (
+            <>
+              <button onClick={onClose} className="btn-ghost flex-1">
+                {t("editSub.cancel")}
+              </button>
+              <button onClick={save} className="btn-primary flex-1">
+                <Icon.Check /> {t("editSub.save")}
+              </button>
+            </>
+          )}
         </div>
       }
     >
@@ -156,11 +171,12 @@ export function EditSubscriptionSheet({
         <div className="title-app text-2xl">
           {initial ? t("editSub.edit") : t("editSub.new")}
         </div>
-        <button onClick={onClose} className="iconbtn">
+        <button type="button" onClick={onClose} className="iconbtn">
           <Icon.X />
         </button>
       </div>
 
+      <div className={readOnly ? "pointer-events-none select-none opacity-80" : undefined}>
       <div className="mb-4">
         <div className="flex items-center gap-3">
           <Logo sub={logoPreview} token={token} size={56} rounded={16} />
@@ -370,6 +386,7 @@ export function EditSubscriptionSheet({
             ))}
           </div>
         )}
+      </div>
       </div>
     </Sheet>
   );

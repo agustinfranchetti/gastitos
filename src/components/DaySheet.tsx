@@ -12,6 +12,7 @@ export function DaySheet({
   date,
   subs,
   token,
+  addDisabled,
   onClose,
   onPickSub,
   onAddNew,
@@ -19,6 +20,7 @@ export function DaySheet({
   date: Date | null;
   subs: Subscription[];
   token?: string;
+  addDisabled?: boolean;
   onClose: () => void;
   onPickSub: (s: Subscription) => void;
   onAddNew: (date: Date) => void;
@@ -81,8 +83,10 @@ export function DaySheet({
       )}
 
       <button
-        onClick={() => onAddNew(date)}
-        className="flex w-full items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white/50 px-4 py-3 text-sm text-zinc-800 active:bg-zinc-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-white dark:active:bg-white/10"
+        type="button"
+        onClick={() => (addDisabled ? undefined : onAddNew(date))}
+        disabled={addDisabled}
+        className="flex w-full items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white/50 px-4 py-3 text-sm text-zinc-800 active:bg-zinc-100 disabled:pointer-events-none disabled:opacity-35 dark:border-white/10 dark:bg-white/[0.03] dark:text-white dark:active:bg-white/10"
       >
         <Icon.Plus /> {t("daySheet.addThisDay")}
       </button>

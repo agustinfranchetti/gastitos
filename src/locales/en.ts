@@ -3,6 +3,7 @@ const en = {
     add: "Add",
     never: "never",
     cancel: "Cancel",
+    close: "Close",
   },
   app: {
     updateAvailable: "A new version is ready.",
@@ -19,6 +20,11 @@ const en = {
     pickMonthDone: "Done",
     metrics: "Metrics",
     settings: "Settings",
+  },
+  demoMode: {
+    active: "Demo",
+    bar: "Read-only sample data. Open the app at /demo in the address bar. Nothing is saved.",
+    exit: "Back to app",
   },
   banner: {
     monthNames: "MMMM yyyy",
@@ -76,6 +82,8 @@ const en = {
     account: "Account",
     signedInSync: "Signed in; data syncs when online",
     signInHint: "Sign in with your email to sync this device.",
+    demoReadOnly:
+      "Read-only on /demo. Use 'Back to app' in the bar above to return to your data.",
     otpHint: "We sent a one-time code to {email}.",
     sendCode: "Send code",
     enterCode: "Code",

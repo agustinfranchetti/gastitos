@@ -22,11 +22,13 @@ import { newId } from "../lib/id";
 export function SubscriptionSheet({
   sub,
   token,
+  readOnly,
   onClose,
   onEdit,
 }: {
   sub: Subscription | null;
   token?: string;
+  readOnly?: boolean;
   onClose: () => void;
   onEdit: (s: Subscription) => void;
 }) {
@@ -67,7 +69,7 @@ export function SubscriptionSheet({
   const cat = cats?.find((c) => c.id === sub.categoryId);
 
   async function toggleActive() {
-    if (!sub) return;
+    if (readOnly || !sub) return;
     await db.subscriptions.update(sub.id, {
       active: !sub.active,
       updatedAt: new Date().toISOString(),
@@ -75,7 +77,7 @@ export function SubscriptionSheet({
   }
 
   async function remove() {
-    if (!sub) return;
+    if (readOnly || !sub) return;
     if (!confirm(t("subscription.deleteConfirm", { name: sub.name }))) return;
     await db.subscriptions.delete(sub.id);
     onClose();
@@ -86,8 +88,10 @@ export function SubscriptionSheet({
       <div className="mb-5 flex flex-col items-center text-center">
         <div className="mb-3 flex w-full items-center justify-between">
           <button
+            type="button"
             onClick={toggleActive}
-            className="chip !py-1 !px-2.5 !text-[11px]"
+            disabled={readOnly}
+            className="chip !py-1 !px-2.5 !text-[11px] disabled:opacity-40"
           >
             <span
               className={`h-1.5 w-1.5 rounded-full ${
@@ -97,8 +101,10 @@ export function SubscriptionSheet({
             {sub.active ? t("subscription.active") : t("subscription.paused")}
           </button>
           <button
-            onClick={() => onEdit(sub)}
-            className="text-xs text-white/60 active:text-white"
+            type="button"
+            onClick={() => (readOnly ? undefined : onEdit(sub))}
+            disabled={readOnly}
+            className="text-xs text-white/60 active:text-white disabled:opacity-40"
           >
             {t("subscription.edit")}
           </button>
@@ -124,8 +130,8 @@ export function SubscriptionSheet({
               ? t("subscription.raisesBadge", { n: sub.raises.length })
               : undefined
           }
-          onClick={() => setRaiseOpen(true)}
-          tappable
+          onClick={readOnly ? undefined : () => setRaiseOpen(true)}
+          tappable={!readOnly}
         />
         <Row
           label={t("subscription.nextPayment")}
@@ -231,12 +237,19 @@ export function SubscriptionSheet({
       </div>
 
       <div className="mt-4 flex gap-2">
-        <button onClick={remove} className="btn-ghost flex-1">
+        <button
+          type="button"
+          onClick={remove}
+          disabled={readOnly}
+          className="btn-ghost flex-1 disabled:opacity-40"
+        >
           <Icon.Trash /> {t("subscription.delete")}
         </button>
         <button
-          onClick={() => setRaiseOpen(true)}
-          className="btn-primary flex-1"
+          type="button"
+          onClick={() => (readOnly ? undefined : setRaiseOpen(true))}
+          disabled={readOnly}
+          className="btn-primary flex-1 disabled:opacity-40"
         >
           <Icon.Rocket /> {t("subscription.addRaise")}
         </button>
@@ -245,6 +258,7 @@ export function SubscriptionSheet({
       <RaiseSheet
         open={raiseOpen}
         sub={sub}
+        readOnly={readOnly}
         formatMoneyWithCode={money}
         onClose={() => setRaiseOpen(false)}
       />
@@ -297,11 +311,13 @@ function Row({
 function RaiseSheet({
   open,
   sub,
+  readOnly,
   formatMoneyWithCode,
   onClose,
 }: {
   open: boolean;
   sub: Subscription;
+  readOnly?: boolean;
   formatMoneyWithCode: (n: number) => string;
   onClose: () => void;
 }) {
@@ -326,6 +342,10 @@ function RaiseSheet({
   })();
 
   async function save() {
+    if (readOnly) {
+      onClose();
+      return;
+    }
     const raise = {
       id: newId(),
       date,
@@ -343,13 +363,14 @@ function RaiseSheet({
 
   return (
     <Sheet open={open} onClose={onClose}>
-      <div className="title-app text-2xl">{t("raise.title")}</div>
-      <p className="mb-4 text-sm text-white/60">
-        {t("raise.forLine", {
-          name: sub.name,
-          amount: formatMoneyWithCode(currentPrice),
-        })}
-      </p>
+      <div className={readOnly ? "pointer-events-none select-none opacity-60" : undefined}>
+        <div className="title-app text-2xl">{t("raise.title")}</div>
+        <p className="mb-4 text-sm text-white/60">
+          {t("raise.forLine", {
+            name: sub.name,
+            amount: formatMoneyWithCode(currentPrice),
+          })}
+        </p>
 
       <div className="mb-4 inline-flex rounded-full border border-white/10 bg-black/30 p-1 text-xs">
         {(["percent", "fixed"] as const).map((m) => (
@@ -427,14 +448,23 @@ function RaiseSheet({
           })}
         </div>
       </div>
+      </div>
 
       <div className="mt-5 flex gap-2">
-        <button onClick={onClose} className="btn-ghost flex-1">
-          {t("raise.cancel")}
-        </button>
-        <button onClick={save} className="btn-primary flex-1">
-          <Icon.Check /> {t("raise.save")}
-        </button>
+        {readOnly ? (
+          <button type="button" onClick={onClose} className="btn-primary w-full">
+            {t("common.close")}
+          </button>
+        ) : (
+          <>
+            <button type="button" onClick={onClose} className="btn-ghost flex-1">
+              {t("raise.cancel")}
+            </button>
+            <button type="button" onClick={save} className="btn-primary flex-1">
+              <Icon.Check /> {t("raise.save")}
+            </button>
+          </>
+        )}
       </div>
     </Sheet>
   );

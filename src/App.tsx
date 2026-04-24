@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import {
   addMonths,
@@ -27,6 +28,7 @@ import { useI18n } from "./lib/i18n";
 import { PwaUpdateChip } from "./components/PwaUpdateChip";
 import { usePwaUpdate } from "./lib/usePwaUpdate";
 import { MonthYearPickerSheet } from "./components/MonthYearPickerSheet";
+import { useDesktopFramed } from "./components/DesktopPhoneFrame";
 import { syncDocumentAccentFromSettings } from "./lib/theme";
 import { useDemoMode } from "./lib/demoMode";
 
@@ -127,8 +129,15 @@ export default function App() {
     setEditOpen(true);
   }
 
+  const desktopFramed = useDesktopFramed();
+
   return (
-    <div className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col bg-[#0a0806] pb-28">
+    <div
+      className={clsx(
+        "mx-auto flex w-full flex-col bg-[#0a0806] pb-28",
+        desktopFramed ? "min-h-full max-w-none" : "min-h-[100dvh] max-w-md",
+      )}
+    >
       {needRefresh && (
         <PwaUpdateChip
           onUpdate={() => void applyUpdate()}
@@ -136,6 +145,7 @@ export default function App() {
         />
       )}
       <Header
+        inDesktopFrame={desktopFramed}
         onOpenMonthPicker={() => setMonthPickerOpen(true)}
         onMetrics={() => setMetricsOpen(true)}
         onSettings={() => setSettingsOpen(true)}
@@ -262,18 +272,27 @@ export default function App() {
 }
 
 function Header({
+  inDesktopFrame,
   onOpenMonthPicker,
   onMetrics,
   onSettings,
   t,
 }: {
+  inDesktopFrame: boolean;
   onOpenMonthPicker: () => void;
   onMetrics: () => void;
   onSettings: () => void;
   t: (k: string) => string;
 }) {
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between border-b border-transparent bg-black/20 px-4 pb-2 pt-[max(env(safe-area-inset-top),12px)] backdrop-blur-md">
+    <header
+      className={clsx(
+        "sticky top-0 z-20 flex items-center justify-between border-b px-4 pb-2 pt-[max(env(safe-area-inset-top),12px)]",
+        inDesktopFrame
+          ? "border-white/[0.07] bg-[#0a0806] shadow-[0_1px_0_0_rgba(255,255,255,0.04)]"
+          : "border-transparent bg-black/20 backdrop-blur-md",
+      )}
+    >
       <button
         type="button"
         onClick={onOpenMonthPicker}

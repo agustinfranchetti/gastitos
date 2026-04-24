@@ -15,7 +15,6 @@ import { CurrencyToggle } from "./CurrencyToggle";
 import { TotalPaymentsStrip } from "./TotalPaymentsStrip";
 import { useCategories, usePeople, useSettings } from "../lib/hooks";
 import { useI18n } from "../lib/i18n";
-import { useDemoMode } from "../lib/demoMode";
 
 type Draft = Omit<Subscription, "createdAt" | "updatedAt">;
 
@@ -55,7 +54,6 @@ export function EditSubscriptionSheet({
   open: boolean;
   initial: Subscription | null;
   seedStartDate?: string | null;
-  /** Demo mode: no persist; single close action in footer. */
   readOnly?: boolean;
   onClose: () => void;
 }) {
@@ -63,14 +61,11 @@ export function EditSubscriptionSheet({
   const people = usePeople();
   const cats = useCategories();
   const { t, cycle } = useI18n();
-  const { isDemo } = useDemoMode();
   const [draft, setDraft] = useState<Draft>(blank());
   const [remindersOpen, setRemindersOpen] = useState(false);
-  const [demoSaveBlocked, setDemoSaveBlocked] = useState(false);
 
   useEffect(() => {
     if (open) {
-      setDemoSaveBlocked(false);
       setDraft(
         initial
           ? { ...initial }
@@ -100,11 +95,6 @@ export function EditSubscriptionSheet({
   async function save() {
     if (readOnly) {
       onClose();
-      return;
-    }
-    if (isDemo) {
-      if (!draft.name.trim()) return;
-      setDemoSaveBlocked(true);
       return;
     }
     if (!draft.name.trim()) return;
@@ -163,14 +153,6 @@ export function EditSubscriptionSheet({
             <button onClick={onClose} className="btn-primary w-full">
               {t("common.close")}
             </button>
-          ) : demoSaveBlocked && isDemo ? (
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn-primary w-full"
-            >
-              {t("common.close")}
-            </button>
           ) : (
             <>
               <button onClick={onClose} className="btn-ghost flex-1">
@@ -193,22 +175,7 @@ export function EditSubscriptionSheet({
         </button>
       </div>
 
-      {demoSaveBlocked && isDemo && (
-        <p
-          className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/12 px-3 py-2.5 text-sm leading-snug text-amber-100/95"
-          role="status"
-        >
-          {t("demoMode.saveNotPersisted")}
-        </p>
-      )}
-
-      <div
-        className={
-          readOnly || (demoSaveBlocked && isDemo)
-            ? "pointer-events-none select-none opacity-80"
-            : undefined
-        }
-      >
+      <div className={readOnly ? "pointer-events-none select-none opacity-80" : undefined}>
       <div className="mb-4">
         <div className="flex items-center gap-3">
           <Logo sub={logoPreview} token={token} size={56} rounded={16} />

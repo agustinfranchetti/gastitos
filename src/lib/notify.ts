@@ -1,7 +1,6 @@
 import { addDays, isAfter, isBefore, parseISO, startOfDay } from "date-fns";
 import { db } from "./db";
 import { nextPaymentAfter, priceOn } from "./billing";
-import { getIsDemoFromWindowPath } from "./demoMode";
 import { formatMoney } from "./money";
 import type { Subscription } from "./types";
 
@@ -20,8 +19,6 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
  * opened after a threshold is crossed.
  */
 export async function scanAndNotify() {
-  if (getIsDemoFromWindowPath()) return;
-
   const settings = await db.settings.get("singleton");
   if (!settings?.notificationsEnabled) return;
   if (typeof Notification === "undefined") return;

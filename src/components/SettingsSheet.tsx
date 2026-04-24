@@ -14,7 +14,6 @@ import { useCategories, usePeople, useSettings } from "../lib/hooks";
 import { useAuth } from "../lib/useAuth";
 import { newId } from "../lib/id";
 import { useI18n } from "../lib/i18n";
-import { useDemoMode } from "../lib/demoMode";
 import { requestNotificationPermission } from "../lib/notify";
 import { Toggle } from "./EditSubscriptionSheet";
 import { DiscPickerModal } from "./DiscPickerModal";
@@ -50,7 +49,6 @@ export function SettingsSheet({
 }: {
   open: boolean;
   onClose: () => void;
-  /** Demo mode: UI is read-only. */
   readOnly?: boolean;
   /** Manual PWA “check for update” (service worker). */
   onCheckPwaUpdate?: () => void | Promise<void>;
@@ -63,7 +61,6 @@ export function SettingsSheet({
   const [fxLoading, setFxLoading] = useState(false);
   const [fxError, setFxError] = useState<string | null>(null);
   const { t } = useI18n();
-  const { isDemo, patchDemoSettings } = useDemoMode();
 
   if (!settings) return null;
 
@@ -72,12 +69,6 @@ export function SettingsSheet({
     : "";
 
   async function patch(p: Partial<Settings>) {
-    if (isDemo) {
-      if (p.accentPreset != null) {
-        patchDemoSettings({ accentPreset: p.accentPreset });
-      }
-      return;
-    }
     if (ro) return;
     await db.settings.update("singleton", p);
     const s = await db.settings.get("singleton");
@@ -123,12 +114,6 @@ export function SettingsSheet({
             <Icon.X />
           </button>
         </div>
-        {ro && (
-          <p className="mb-1 rounded-lg border border-amber-500/25 bg-amber-500/10 px-3 py-2.5 text-[12px] text-amber-100/90">
-            {t("settings.demoReadOnly")}
-          </p>
-        )}
-
         <div
           className={`flex flex-col gap-5 ${roClass}`}
           aria-label={t("settings.title")}
@@ -149,13 +134,7 @@ export function SettingsSheet({
                     <div className="shrink-0 pr-0.5 text-sm text-zinc-700 dark:text-white/80">
                       {t("settings.accent")}
                     </div>
-                    <div
-                      className={
-                        ro
-                          ? "pointer-events-auto z-[1] grid w-fit max-w-full shrink-0 select-auto grid-cols-5 items-center gap-1.5 opacity-100"
-                          : "grid w-fit max-w-full shrink-0 grid-cols-5 items-center gap-1.5"
-                      }
-                    >
+                    <div className="grid w-fit max-w-full shrink-0 grid-cols-5 items-center gap-1.5 sm:ml-auto">
                       {ACCENT_PRESET_ORDER.map((id) => {
                         const active = (settings.accentPreset ?? "orange") === id;
                         return (

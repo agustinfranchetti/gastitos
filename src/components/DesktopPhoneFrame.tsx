@@ -56,7 +56,9 @@ const R55_OVER_W393 = 55 / 393;
 
 /**
  * On wide, non-standalone viewports, centers the app in `public/frame.svg` (orange iPhone).
- * The scroll layer uses `transform` so `position: fixed` (FAB, sheets) stays inside the “screen”.
+ * The screen is a flex column with `overflow: hidden` — scrolling happens inside the app, with
+ * the add FAB docked *outside* the scroll area so it does not move with the scroll. `transform` on
+ * the screen keeps `position: fixed` (sheets) contained to the glass.
  */
 export function DesktopPhoneFrame({ children }: { children: ReactNode }) {
   const [framed, setFramed] = useState(readFramed);
@@ -143,7 +145,7 @@ export function DesktopPhoneFrame({ children }: { children: ReactNode }) {
               ancho del “screen” (igual que en el iPhone al redimensionar el mockup).
             */}
             <div
-              className="flex h-full min-h-0 w-full min-w-0 max-w-full flex-col overflow-y-auto overflow-x-hidden bg-[#0a0806] [border-radius:var(--r)] [scrollbar-gutter:stable] [transform:translate3d(0,0,0)] overscroll-y-contain"
+              className="flex h-full min-h-0 w-full min-w-0 max-w-full flex-col overflow-hidden bg-[#0a0806] [border-radius:var(--r)] [transform:translate3d(0,0,0)]"
               style={{ ["--r" as const]: `min(3.4375rem,${R55_OVER_W393 * 100}cqi)` } as CSSProperties}
             >
               {children}

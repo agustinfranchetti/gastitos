@@ -2,7 +2,7 @@
 
 A subscription tracker in the browser: month calendar with logos, totals, metrics, ARS / USD / EUR, people & categories, optional Supabase sync. Installable as a **PWA**; data stays on the device (IndexedDB).
 
-**[Live demo](https://afranchetti-gastitos.vercel.app/demo)**
+**[Live app](https://afranchetti-gastitos.vercel.app/)**
 
 ## Screenshots
 
@@ -26,7 +26,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173` — demo route: `/demo`.
+Open `http://localhost:5173`.
 
 **Optional sync:** Supabase project + run `supabase/schema.sql` + `VITE_SUPABASE_*` in `.env` (see `.env.example`), then sign in under Settings → Account with email OTP ([Supabase docs](https://supabase.com/docs/guides/auth/auth-email-passwordless#with-otp)).
 

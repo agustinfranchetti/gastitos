@@ -23,12 +23,6 @@ const es = {
     metrics: "Métricas",
     settings: "Ajustes",
   },
-  demoMode: {
-    active: "Demo",
-    bar: "Datos de ejemplo. No se escribe nada a la base. Podés probar el color y el formulario de alta.",
-    exit: "Volver a la app",
-    saveNotPersisted: "Es una demo: no se guarda nada. Tocá cerrar para volver.",
-  },
   banner: {
     monthNames: "MMMM yyyy",
   },
@@ -84,8 +78,6 @@ const es = {
     account: "Cuenta",
     signedInSync: "Sesión iniciada; se sincroniza con conexión",
     signInHint: "Inicia sesión con tu correo para sincronizar este dispositivo.",
-    demoReadOnly:
-      "El resto es solo lectura en /demo. El color del tema sí podés cambiarlo. Usá «Volver a la app» para volver a tus datos.",
     otpHint: "Enviamos un código de un solo uso a {email}.",
     sendCode: "Enviar código",
     enterCode: "Código",

@@ -23,22 +23,14 @@ import type { Currency, Subscription } from "./lib/types";
 import { paymentsInMonth, priceOn } from "./lib/billing";
 import { convert, fetchFxRates } from "./lib/money";
 import { scanAndNotify } from "./lib/notify";
-import { useAuth } from "./lib/useAuth";
 import { useI18n } from "./lib/i18n";
 import { PwaUpdateChip } from "./components/PwaUpdateChip";
 import { usePwaUpdate } from "./lib/usePwaUpdate";
 import { MonthYearPickerSheet } from "./components/MonthYearPickerSheet";
 import { useDesktopFramed } from "./components/DesktopPhoneFrame";
 import { syncDocumentAccentFromSettings } from "./lib/theme";
-import { useDemoMode } from "./lib/demoMode";
 
 export default function App() {
-  const { user } = useAuth();
-  const { isDemo, exitDemo } = useDemoMode();
-
-  useEffect(() => {
-    if (user && isDemo) exitDemo();
-  }, [user, isDemo, exitDemo]);
   const { t, formatMonth, formatShortDay } = useI18n();
   const { needRefresh, applyUpdate, dismiss, checkForUpdate, isChecking: pwaCheckBusy } =
     usePwaUpdate();
@@ -65,10 +57,6 @@ export default function App() {
   }, []);
 
   useLayoutEffect(() => {
-    if (isDemo) {
-      if (settings) syncDocumentAccentFromSettings(settings);
-      return;
-    }
     let cancelled = false;
     void (async () => {
       const s = await db.settings.get("singleton");
@@ -78,12 +66,11 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [settings, isDemo]);
+  }, [settings]);
 
   // Auto-fetch FX on first load (and refresh if older than 6h). Not tied to primary currency
   // (see settings reference table); fetches the canonical USD-based triangle.
   useEffect(() => {
-    if (isDemo) return;
     if (!settings) return;
     const stale =
       !settings.fx ||
@@ -93,10 +80,9 @@ export default function App() {
     fetchFxRates()
       .then((fx) => db.settings.update("singleton", { fx }))
       .catch((e) => console.warn("[fx] fetch failed", e));
-  }, [isDemo, settings, settings?.fx?.fetchedAt]);
+  }, [settings, settings?.fx?.fetchedAt]);
 
   useEffect(() => {
-    if (isDemo) return;
     const run = () => scanAndNotify().catch(() => {});
     run();
     const onVis = () => {
@@ -104,7 +90,7 @@ export default function App() {
     };
     document.addEventListener("visibilitychange", onVis);
     return () => document.removeEventListener("visibilitychange", onVis);
-  }, [isDemo, settings?.notificationsEnabled]);
+  }, [settings?.notificationsEnabled]);
 
   const primary = (settings?.primaryCurrency ?? "ARS") as Currency;
   /** Home total + list under calendar; metrics use `metricsCurrency` */
@@ -135,55 +121,28 @@ export default function App() {
 
   const desktopFramed = useDesktopFramed();
 
-  return (
-    <div
-      className={clsx(
-        "mx-auto flex w-full flex-col bg-[#0a0806] pb-28",
-        desktopFramed ? "min-h-full max-w-none" : "min-h-[100dvh] max-w-md",
-      )}
-    >
-      {needRefresh && (
-        <PwaUpdateChip
-          onUpdate={() => void applyUpdate()}
-          onDismiss={dismiss}
-        />
-      )}
-      <Header
-        inDesktopFrame={desktopFramed}
-        onOpenMonthPicker={() => setMonthPickerOpen(true)}
-        onMetrics={() => setMetricsOpen(true)}
-        onSettings={() => setSettingsOpen(true)}
-        t={t}
+  const homeScroll = (
+    <div className="flex w-full min-w-0 flex-col pt-5">
+      {/*
+        Do not use flex-1 on this block: it would cap height to the viewport and the calendar
+        + list would share that space, collapsing the grid. Let height follow content so the
+        scroll area (window or inner overflow) can grow (calendar on top, then expenses).
+      */}
+      <TotalBanner
+        monthLabel={formatMonth(month)}
+        isViewingCurrentMonth={isViewingCurrentMonth}
+        onGoToCurrentMonth={() => setMonth(startOfMonth(new Date()))}
+        backToCurrentMonthLabel={t("header.backToCurrentMonth")}
+        total={total}
+        currency={listCurrency}
+        onPrevMonth={() => setMonth(subMonths(month, 1))}
+        onNextMonth={() => setMonth(addMonths(month, 1))}
+        prevLabel={t("header.prevMonth")}
+        nextLabel={t("header.nextMonth")}
       />
 
-      {isDemo && (
-        <div className="flex items-center gap-2 border-b border-white/10 bg-[color:rgb(var(--accent-500-rgb)/0.12)] px-4 py-2.5 text-[12px] leading-snug text-zinc-200">
-          <span className="min-w-0 flex-1">{t("demoMode.bar")}</span>
-          <button
-            type="button"
-            onClick={() => exitDemo()}
-            className="shrink-0 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-medium text-white/90 active:bg-white/20"
-          >
-            {t("demoMode.exit")}
-          </button>
-        </div>
-      )}
-
-      <div className="flex min-h-0 flex-1 flex-col pt-5">
-        <TotalBanner
-          monthLabel={formatMonth(month)}
-          isViewingCurrentMonth={isViewingCurrentMonth}
-          onGoToCurrentMonth={() => setMonth(startOfMonth(new Date()))}
-          backToCurrentMonthLabel={t("header.backToCurrentMonth")}
-          total={total}
-          currency={listCurrency}
-          onPrevMonth={() => setMonth(subMonths(month, 1))}
-          onNextMonth={() => setMonth(addMonths(month, 1))}
-          prevLabel={t("header.prevMonth")}
-          nextLabel={t("header.nextMonth")}
-        />
-
-        <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex w-full min-w-0 flex-col">
+        <div className="shrink-0">
           <CalendarGrid
             month={month}
             subs={subs ?? []}
@@ -192,6 +151,7 @@ export default function App() {
             onPrevMonth={() => setMonth(subMonths(month, 1))}
             onNextMonth={() => setMonth(addMonths(month, 1))}
           />
+        </div>
 
         <UpcomingList
           subs={subs ?? []}
@@ -203,13 +163,55 @@ export default function App() {
           formatShortDay={formatShortDay}
           onPickSub={(s) => setPicked(s)}
         />
-        </div>
       </div>
+    </div>
+  );
 
-      <AddFab
-        label={t("addFab.label")}
-        onClick={() => openNewFor(null)}
-      />
+  return (
+    <div
+      className={clsx(
+        "mx-auto flex w-full flex-col bg-[#0a0806]",
+        desktopFramed
+          ? "h-full min-h-0 max-w-none"
+          : "min-h-[100dvh] max-w-md pb-28",
+      )}
+    >
+      {needRefresh && (
+        <PwaUpdateChip
+          onUpdate={() => void applyUpdate()}
+          onDismiss={dismiss}
+        />
+      )}
+
+      {desktopFramed ? (
+        <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
+          <Header
+            onOpenMonthPicker={() => setMonthPickerOpen(true)}
+            onMetrics={() => setMetricsOpen(true)}
+            onSettings={() => setSettingsOpen(true)}
+            t={t}
+          />
+          <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain [scrollbar-gutter:stable]">
+            {homeScroll}
+          </div>
+          <AddFab
+            label={t("addFab.label")}
+            docked
+            onClick={() => openNewFor(null)}
+          />
+        </div>
+      ) : (
+        <>
+          <Header
+            onOpenMonthPicker={() => setMonthPickerOpen(true)}
+            onMetrics={() => setMetricsOpen(true)}
+            onSettings={() => setSettingsOpen(true)}
+            t={t}
+          />
+          {homeScroll}
+          <AddFab label={t("addFab.label")} onClick={() => openNewFor(null)} />
+        </>
+      )}
 
       <DaySheet
         date={day}
@@ -230,7 +232,6 @@ export default function App() {
       <SubscriptionSheet
         sub={picked}
         token={token}
-        readOnly={isDemo}
         onClose={() => setPicked(null)}
         onEdit={(s) => {
           setPicked(null);
@@ -258,7 +259,6 @@ export default function App() {
 
       <SettingsSheet
         open={settingsOpen}
-        readOnly={isDemo}
         onClose={() => setSettingsOpen(false)}
         onCheckPwaUpdate={checkForUpdate}
         pwaUpdateChecking={pwaCheckBusy}
@@ -275,13 +275,11 @@ export default function App() {
 }
 
 function Header({
-  inDesktopFrame,
   onOpenMonthPicker,
   onMetrics,
   onSettings,
   t,
 }: {
-  inDesktopFrame: boolean;
   onOpenMonthPicker: () => void;
   onMetrics: () => void;
   onSettings: () => void;
@@ -289,12 +287,7 @@ function Header({
 }) {
   return (
     <header
-      className={clsx(
-        "sticky top-0 z-20 flex items-center justify-between border-b px-4 pb-2 pt-[max(env(safe-area-inset-top),12px)]",
-        inDesktopFrame
-          ? "border-white/[0.07] bg-[#0a0806] shadow-[0_1px_0_0_rgba(255,255,255,0.04)]"
-          : "border-transparent bg-black/20 backdrop-blur-md",
-      )}
+      className="sticky top-0 z-20 flex items-center justify-between border-b border-transparent bg-black/20 px-4 pb-2 pt-[max(env(safe-area-inset-top),12px)] backdrop-blur-md"
     >
       <button
         type="button"
@@ -330,22 +323,37 @@ function AddFab({
   label,
   onClick,
   disabled,
+  /** Outside the scroll view in the desktop phone frame so the button does not move with content */
+  docked,
 }: {
   label: string;
   onClick: () => void;
   disabled?: boolean;
+  docked?: boolean;
 }) {
+  const inner = (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="btn-primary !px-5 !py-3 disabled:pointer-events-none disabled:opacity-35"
+      aria-disabled={disabled}
+    >
+      <Icon.Plus /> {label}
+    </button>
+  );
+
+  if (docked) {
+    return (
+      <div className="shrink-0 border-t border-white/[0.04] bg-[#0a0806] px-4 pt-2 pb-[max(env(safe-area-inset-bottom),16px)]">
+        <div className="flex justify-center">{inner}</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),16px)] z-30 flex justify-center px-4">
-      <button
-        type="button"
-        onClick={onClick}
-        disabled={disabled}
-        className="btn-primary !px-5 !py-3 disabled:pointer-events-none disabled:opacity-35"
-        aria-disabled={disabled}
-      >
-        <Icon.Plus /> {label}
-      </button>
+    <div className="pointer-events-none fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),16px)] z-30 flex justify-center px-4">
+      <div className="pointer-events-auto">{inner}</div>
     </div>
   );
 }

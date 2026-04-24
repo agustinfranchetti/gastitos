@@ -21,12 +21,6 @@ const en = {
     metrics: "Metrics",
     settings: "Settings",
   },
-  demoMode: {
-    active: "Demo",
-    bar: "Sample data only. Nothing is written to the database. You can try the theme and the add form.",
-    exit: "Back to app",
-    saveNotPersisted: "This is a demo: nothing is saved. Close when you’re done.",
-  },
   banner: {
     monthNames: "MMMM yyyy",
   },
@@ -83,8 +77,6 @@ const en = {
     account: "Account",
     signedInSync: "Signed in; data syncs when online",
     signInHint: "Sign in with your email to sync this device.",
-    demoReadOnly:
-      "Other options are read-only on /demo. You can still change the accent color. Use «Back to app» to return to your data.",
     otpHint: "We sent a one-time code to {email}.",
     sendCode: "Send code",
     enterCode: "Code",

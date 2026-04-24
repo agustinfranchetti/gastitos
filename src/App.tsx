@@ -32,7 +32,7 @@ import { syncDocumentAccentFromSettings } from "./lib/theme";
 
 export default function App() {
   const { t, formatMonth, formatShortDay } = useI18n();
-  const { needRefresh, applyUpdate, dismiss, checkForUpdate, isChecking: pwaCheckBusy } =
+  const { needRefresh, applyUpdate, checkForUpdate, isChecking: pwaCheckBusy } =
     usePwaUpdate();
 
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
@@ -122,7 +122,12 @@ export default function App() {
   const desktopFramed = useDesktopFramed();
 
   const homeScroll = (
-    <div className="flex w-full min-w-0 flex-col pt-5">
+    <div
+      className={clsx(
+        "flex w-full min-w-0 flex-col",
+        needRefresh ? "pt-1.5" : "pt-5",
+      )}
+    >
       {/*
         Do not use flex-1 on this block: it would cap height to the viewport and the calendar
         + list would share that space, collapsing the grid. Let height follow content so the
@@ -176,13 +181,6 @@ export default function App() {
           : "min-h-[100dvh] max-w-md pb-28",
       )}
     >
-      {needRefresh && (
-        <PwaUpdateChip
-          onUpdate={() => void applyUpdate()}
-          onDismiss={dismiss}
-        />
-      )}
-
       {desktopFramed ? (
         <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
           <Header
@@ -191,6 +189,9 @@ export default function App() {
             onSettings={() => setSettingsOpen(true)}
             t={t}
           />
+          {needRefresh && (
+            <PwaUpdateChip onUpdate={() => void applyUpdate()} />
+          )}
           <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain [scrollbar-gutter:stable]">
             {homeScroll}
           </div>
@@ -208,6 +209,9 @@ export default function App() {
             onSettings={() => setSettingsOpen(true)}
             t={t}
           />
+          {needRefresh && (
+            <PwaUpdateChip onUpdate={() => void applyUpdate()} />
+          )}
           {homeScroll}
           <AddFab label={t("addFab.label")} onClick={() => openNewFor(null)} />
         </>

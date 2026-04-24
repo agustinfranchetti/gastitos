@@ -1,12 +1,24 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { registerSW } from "virtual:pwa-register";
 
+declare global {
+  interface Window {
+    /** DevTools: `__GASTITOS__.showPwaUpdateBanner()` / `hidePwaUpdateBanner()` */
+    __GASTITOS__?: {
+      showPwaUpdateBanner?: () => void;
+      hidePwaUpdateBanner?: () => void;
+    };
+  }
+}
+
 /**
  * Fires when a new service worker has installed precache and the page should reload to pick it up.
  * With `registerType: "autoUpdate"`, the worker updates in the background; this hook exposes when to offer a reload.
  */
 export function usePwaUpdate() {
   const [needRefresh, setNeedRefresh] = useState(false);
+  /** Forced open from `window.__GASTITOS__.showPwaUpdateBanner()` (see DevTools) */
+  const [previewChip, setPreviewChip] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const updateRef = useRef<((reloadPage?: boolean) => Promise<void>) | null>(
     null,
@@ -46,12 +58,40 @@ export function usePwaUpdate() {
     }
   }, []);
 
-  const applyUpdate = useCallback(async () => {
-    setNeedRefresh(false);
-    await updateRef.current?.(true);
+  useEffect(() => {
+    window.__GASTITOS__ = {
+      ...window.__GASTITOS__,
+      showPwaUpdateBanner: () => setPreviewChip(true),
+      hidePwaUpdateBanner: () => setPreviewChip(false),
+    };
+    return () => {
+      const g = window.__GASTITOS__;
+      if (!g) return;
+      delete g.showPwaUpdateBanner;
+      delete g.hidePwaUpdateBanner;
+    };
   }, []);
 
-  const dismiss = useCallback(() => setNeedRefresh(false), []);
+  const applyUpdate = useCallback(async () => {
+    const wasReal = needRefresh;
+    setPreviewChip(false);
+    if (!wasReal) return;
+    setNeedRefresh(false);
+    await updateRef.current?.(true);
+  }, [needRefresh]);
 
-  return { needRefresh, applyUpdate, dismiss, checkForUpdate, isChecking };
+  const dismiss = useCallback(() => {
+    setNeedRefresh(false);
+    setPreviewChip(false);
+  }, []);
+
+  const showPwaUpdateChip = needRefresh || previewChip;
+
+  return {
+    needRefresh: showPwaUpdateChip,
+    applyUpdate,
+    dismiss,
+    checkForUpdate,
+    isChecking,
+  };
 }

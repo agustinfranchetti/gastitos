@@ -1,39 +1,35 @@
+import clsx from "clsx";
 import { Icon } from "./Icons";
 import { useI18n } from "../lib/i18n";
 
-/** Fixed top chip when a new service worker is ready — doesn’t shift layout. */
-export function PwaUpdateChip({
-  onUpdate,
-  onDismiss,
-}: {
-  onUpdate: () => void;
-  onDismiss: () => void;
-}) {
+/** Aviso de nueva PWA, entre la barra superior y el mes (flujo, no fixed). */
+export function PwaUpdateChip({ onUpdate }: { onUpdate: () => void }) {
   const { t } = useI18n();
 
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 top-[max(env(safe-area-inset-top),8px)] z-[100] flex justify-center px-3"
+      className="shrink-0 flex justify-center px-4 pb-2 pt-0.5"
       role="status"
     >
-      <div className="pointer-events-auto flex w-full max-w-[min(100%-1.5rem,28rem)] items-center gap-1.5 rounded-full border border-orange-200/50 bg-gradient-to-r from-orange-500 via-orange-500 to-orange-600 px-1 py-1 pl-3 shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
-        <span className="min-w-0 flex-1 text-[11px] font-semibold leading-snug text-[#1a0f00] sm:text-[12px]">
+      <div
+        className={clsx(
+          "inline-flex max-w-full items-center gap-2 rounded-full border py-1.5 pl-3 pr-1.5",
+          "border-[color:rgb(var(--accent-400-rgb)/0.3)]",
+          "bg-[color:rgb(var(--accent-600-rgb)/0.16)]",
+          "shadow-[0_2px_14px_rgba(0,0,0,0.25)]",
+          "backdrop-blur-xl backdrop-saturate-150",
+        )}
+      >
+        <span className="min-w-0 pl-0.5 text-sm font-medium leading-tight text-[#e8e2d6]/[0.93]">
           {t("app.updateAvailable")}
         </span>
         <button
           type="button"
           onClick={() => void onUpdate()}
-          className="shrink-0 rounded-full bg-[#1a0f00] px-3.5 py-1.5 text-[11px] font-semibold tracking-wide text-amber-100 shadow-sm active:bg-black"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/10 bg-[color:rgb(var(--accent-500-rgb))] text-white shadow-sm transition-[filter] active:brightness-95"
+          aria-label={t("app.update")}
         >
-          {t("app.update")}
-        </button>
-        <button
-          type="button"
-          onClick={onDismiss}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#1a0f00]/70 active:bg-black/10"
-          aria-label={t("app.updateLater")}
-        >
-          <Icon.X className="!h-[15px] !w-[15px]" />
+          <Icon.Refresh className="!h-4 !w-4" />
         </button>
       </div>
     </div>

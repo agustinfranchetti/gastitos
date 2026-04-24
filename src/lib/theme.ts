@@ -10,12 +10,15 @@ export const ACCENT_PICKER_STYLE: Record<AccentPreset, string> = {
 };
 
 export const ACCENT_PRESET_ORDER: readonly AccentPreset[] = [
+  "rose",
   "orange",
   "amber",
-  "rose",
   "emerald",
   "violet",
 ] as const;
+
+/** Default for new sessions / unset `Settings.accentPreset` */
+export const DEFAULT_ACCENT_PRESET: AccentPreset = "rose";
 
 /** R,G,B triplets 0-255 for rgb(var(--x) / a) in CSS */
 const ACCENT_PRESET_VARS: Record<
@@ -107,8 +110,8 @@ export function applyAccentToDocument(preset: AccentPreset) {
 export function syncDocumentAccentFromSettings(s: Settings | null | undefined) {
   applyDarkToDocument();
   if (!s) {
-    applyAccentToDocument("orange");
+    applyAccentToDocument(DEFAULT_ACCENT_PRESET);
     return;
   }
-  applyAccentToDocument(s.accentPreset ?? "orange");
+  applyAccentToDocument(s.accentPreset ?? DEFAULT_ACCENT_PRESET);
 }

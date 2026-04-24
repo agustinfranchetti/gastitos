@@ -7,6 +7,7 @@ import { fetchFxRates, oneUnitInCurrency } from "../lib/money";
 import {
   ACCENT_PICKER_STYLE,
   ACCENT_PRESET_ORDER,
+  DEFAULT_ACCENT_PRESET,
   syncDocumentAccentFromSettings,
 } from "../lib/theme";
 import type { Category, Currency, Person, Settings } from "../lib/types";
@@ -136,7 +137,7 @@ export function SettingsSheet({
                     </div>
                     <div className="grid w-fit max-w-full shrink-0 grid-cols-5 items-center gap-1.5 sm:ml-auto">
                       {ACCENT_PRESET_ORDER.map((id) => {
-                        const active = (settings.accentPreset ?? "orange") === id;
+                        const active = (settings.accentPreset ?? DEFAULT_ACCENT_PRESET) === id;
                         return (
                           <button
                             key={id}

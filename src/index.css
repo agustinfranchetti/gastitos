@@ -23,15 +23,15 @@
 
 :root {
   --line: rgba(255, 255, 255, 0.06);
-  /* Default accent = pure orange; overridden by `applyAccentToDocument` */
-  --accent-50-rgb: 255 247 237;
-  --accent-100-rgb: 255 237 213;
-  --accent-200-rgb: 254 215 170;
-  --accent-300-rgb: 253 186 116;
-  --accent-400-rgb: 251 146 60;
-  --accent-500-rgb: 249 115 22;
-  --accent-600-rgb: 234 88 12;
-  --accent-700-rgb: 194 65 12;
+  /* Default accent = rose; overridden by `applyAccentToDocument` */
+  --accent-50-rgb: 255 241 242;
+  --accent-100-rgb: 255 228 230;
+  --accent-200-rgb: 254 205 211;
+  --accent-300-rgb: 253 164 175;
+  --accent-400-rgb: 251 113 133;
+  --accent-500-rgb: 244 63 94;
+  --accent-600-rgb: 225 29 72;
+  --accent-700-rgb: 190 18 60;
 }
 
 html {

@@ -5,6 +5,7 @@ import type {
   Settings,
   Subscription,
 } from "./types";
+import { DEFAULT_ACCENT_PRESET } from "./theme";
 
 export interface LogoCacheRow {
   key: string; // `${domain}|${size}` — token-agnostic so rotating the key doesn't wipe it
@@ -47,6 +48,7 @@ export async function ensureSeed() {
       language: "en",
       primaryCurrency: "ARS",
       notificationsEnabled: false,
+      accentPreset: DEFAULT_ACCENT_PRESET,
     });
   } else if (!s.language) {
     await db.settings.update("singleton", { language: "en" });

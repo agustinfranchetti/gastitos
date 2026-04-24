@@ -1,6 +1,6 @@
 export type AppLocale = "en" | "es";
 
-/** Main accent; default `orange` (pure UI orange) */
+/** Main accent; default `rose` in code via `DEFAULT_ACCENT_PRESET` */
 export type AccentPreset = "orange" | "amber" | "rose" | "emerald" | "violet";
 
 export type Currency = "USD" | "EUR" | "ARS";
@@ -80,7 +80,7 @@ export interface Settings {
   id: "singleton";
   /** UI language. Defaults to English if missing. */
   language?: AppLocale;
-  /** Accent for titles, buttons, and focus. Default orange. */
+  /** Accent for titles, buttons, and focus. Default rose. */
   accentPreset?: AccentPreset;
   /** Shorten large money as $154K, $1.2M. Default on. */
   useCompactAmounts?: boolean;

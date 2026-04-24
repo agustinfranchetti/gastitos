@@ -14,6 +14,7 @@ import { useCategories, usePeople, useSettings } from "../lib/hooks";
 import { useAuth } from "../lib/useAuth";
 import { newId } from "../lib/id";
 import { useI18n } from "../lib/i18n";
+import { useDemoMode } from "../lib/demoMode";
 import { requestNotificationPermission } from "../lib/notify";
 import { Toggle } from "./EditSubscriptionSheet";
 import { DiscPickerModal } from "./DiscPickerModal";
@@ -62,6 +63,7 @@ export function SettingsSheet({
   const [fxLoading, setFxLoading] = useState(false);
   const [fxError, setFxError] = useState<string | null>(null);
   const { t } = useI18n();
+  const { isDemo, patchDemoSettings } = useDemoMode();
 
   if (!settings) return null;
 
@@ -70,6 +72,12 @@ export function SettingsSheet({
     : "";
 
   async function patch(p: Partial<Settings>) {
+    if (isDemo) {
+      if (p.accentPreset != null) {
+        patchDemoSettings({ accentPreset: p.accentPreset });
+      }
+      return;
+    }
     if (ro) return;
     await db.settings.update("singleton", p);
     const s = await db.settings.get("singleton");
@@ -137,8 +145,17 @@ export function SettingsSheet({
           <section>
             <SettingsCategoryLabel>{t("settings.categoryGeneral")}</SettingsCategoryLabel>
             <div className="tile mt-1.5 space-y-3 p-4">
-                  <Row label={t("settings.accent")}>
-                    <div className="flex max-w-full flex-wrap items-center justify-end gap-2">
+                  <div className="flex w-full min-w-0 max-w-full flex-nowrap items-center justify-between gap-2 sm:gap-3">
+                    <div className="shrink-0 pr-0.5 text-sm text-zinc-700 dark:text-white/80">
+                      {t("settings.accent")}
+                    </div>
+                    <div
+                      className={
+                        ro
+                          ? "pointer-events-auto z-[1] grid w-fit max-w-full shrink-0 select-auto grid-cols-5 items-center gap-1.5 opacity-100"
+                          : "grid w-fit max-w-full shrink-0 grid-cols-5 items-center gap-1.5"
+                      }
+                    >
                       {ACCENT_PRESET_ORDER.map((id) => {
                         const active = (settings.accentPreset ?? "orange") === id;
                         return (
@@ -146,9 +163,9 @@ export function SettingsSheet({
                             key={id}
                             type="button"
                             onClick={() => void patch({ accentPreset: id })}
-                            className={`relative h-9 w-9 shrink-0 rounded-full border-2 border-transparent transition-transform active:scale-95 ${
+                            className={`relative h-6 w-6 shrink-0 rounded-md border-2 border-transparent transition-transform active:scale-95 ${
                               active
-                                ? "ring-2 ring-zinc-800 ring-offset-2 ring-offset-stone-100 dark:ring-white dark:ring-offset-[#0a0806]"
+                                ? "ring-2 ring-zinc-800 ring-offset-1 ring-offset-stone-100 dark:ring-white dark:ring-offset-[#0a0806]"
                                 : ""
                             }`}
                             style={{ background: ACCENT_PICKER_STYLE[id] }}
@@ -159,7 +176,7 @@ export function SettingsSheet({
                         );
                       })}
                     </div>
-                  </Row>
+                  </div>
                   <div className="flex min-w-0 max-w-full flex-row items-center justify-between gap-3">
                     <div className="flex min-w-0 flex-1 items-center gap-1">
                       <span className="text-sm text-zinc-700 dark:text-white/80">

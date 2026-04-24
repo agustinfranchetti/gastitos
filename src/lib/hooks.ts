@@ -9,12 +9,12 @@ import {
 import { useDemoMode } from "./demoMode";
 
 export const useSettings = () => {
-  const { isDemo } = useDemoMode();
+  const { isDemo, demoSettingsOverride } = useDemoMode();
   const live = useLiveQuery(
     async () => (isDemo ? null : (await db.settings.get("singleton")) ?? null),
     [isDemo],
   );
-  if (isDemo) return DEMO_SETTINGS;
+  if (isDemo) return { ...DEMO_SETTINGS, ...demoSettingsOverride };
   return live ?? null;
 };
 

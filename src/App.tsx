@@ -65,6 +65,10 @@ export default function App() {
   }, []);
 
   useLayoutEffect(() => {
+    if (isDemo) {
+      if (settings) syncDocumentAccentFromSettings(settings);
+      return;
+    }
     let cancelled = false;
     void (async () => {
       const s = await db.settings.get("singleton");
@@ -74,7 +78,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [settings]);
+  }, [settings, isDemo]);
 
   // Auto-fetch FX on first load (and refresh if older than 6h). Not tied to primary currency
   // (see settings reference table); fetches the canonical USD-based triangle.
@@ -204,7 +208,6 @@ export default function App() {
 
       <AddFab
         label={t("addFab.label")}
-        disabled={isDemo}
         onClick={() => openNewFor(null)}
       />
 
@@ -212,7 +215,7 @@ export default function App() {
         date={day}
         subs={subs ?? []}
         token={token}
-        addDisabled={isDemo}
+        addDisabled={false}
         onClose={() => setDay(null)}
         onPickSub={(s) => {
           setDay(null);
@@ -241,7 +244,7 @@ export default function App() {
         open={editOpen}
         initial={editing}
         seedStartDate={editSeedDate}
-        readOnly={isDemo}
+        readOnly={false}
         onClose={() => setEditOpen(false)}
       />
 

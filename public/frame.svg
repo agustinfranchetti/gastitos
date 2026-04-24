@@ -93,6 +93,16 @@
 <rect x="3.6958" width="598.743" height="1252.92" rx="106.258" fill="url(#pattern10_1_722)" fill-opacity="0.3"/>
 <rect x="3.6958" width="598.743" height="1252.92" rx="106.258" fill="url(#pattern11_1_722)" fill-opacity="0.2"/>
 </g>
+<g id="gastitos-frame-antenna-bands" fill="#D4A27F" opacity="0.92">
+<rect x="0.4" y="268" width="9" height="2.8" rx="0.5"/>
+<rect x="0.4" y="400" width="9" height="2.8" rx="0.5"/>
+<rect x="0.4" y="640" width="9" height="2.8" rx="0.5"/>
+<rect x="0.4" y="900" width="9" height="2.8" rx="0.5"/>
+<rect x="596.6" y="268" width="9" height="2.8" rx="0.5"/>
+<rect x="596.6" y="400" width="9" height="2.8" rx="0.5"/>
+<rect x="596.6" y="640" width="9" height="2.8" rx="0.5"/>
+<rect x="596.6" y="900" width="9" height="2.8" rx="0.5"/>
+</g>
 <g filter="url(#filter21_d_1_722)">
 <rect x="12.4736" y="8.77795" width="581.187" height="1235.37" rx="97.9424" fill="black"/>
 </g>

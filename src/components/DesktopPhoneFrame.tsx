@@ -7,6 +7,26 @@ import {
   type ReactNode,
 } from "react";
 
+/** Cache so refetches / re-mounts don’t re-hit the network. */
+let themedFrameSvgPromise: Promise<string> | null = null;
+
+function getThemedFrameSvgMarkup() {
+  if (!themedFrameSvgPromise) {
+    themedFrameSvgPromise = fetch(`${import.meta.env.BASE_URL}frame.svg`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`frame.svg: ${r.status}`);
+        return r.text();
+      })
+      .then((raw) =>
+        raw
+          .replaceAll('fill="#FF5900"', 'fill="rgb(var(--accent-600-rgb))"')
+          .replaceAll('fill="#EC7433"', 'fill="rgb(var(--accent-500-rgb))"')
+          .replaceAll('fill="#D4A27F"', 'fill="rgb(var(--accent-300-rgb))"'),
+      );
+  }
+  return themedFrameSvgPromise;
+}
+
 const DesktopFramedContext = createContext(false);
 
 export function useDesktopFramed() {
@@ -40,6 +60,25 @@ const R55_OVER_W393 = 55 / 393;
  */
 export function DesktopPhoneFrame({ children }: { children: ReactNode }) {
   const [framed, setFramed] = useState(readFramed);
+  const [frameSvgHtml, setFrameSvgHtml] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!framed) {
+      return;
+    }
+    let c = true;
+    getThemedFrameSvgMarkup()
+      .then((h) => {
+        if (c) setFrameSvgHtml(h);
+      })
+      .catch((e) => {
+        console.warn("[DesktopPhoneFrame] themed frame", e);
+        if (c) setFrameSvgHtml(null);
+      });
+    return () => {
+      c = false;
+    };
+  }, [framed]);
 
   useEffect(() => {
     function sync() {
@@ -75,13 +114,21 @@ export function DesktopPhoneFrame({ children }: { children: ReactNode }) {
         <div
           className="relative mx-auto w-[min(92vw,450px,calc((100dvh-2.5rem)*606/1252))] shrink-0 [aspect-ratio:606/1252] overflow-visible"
         >
-          <img
-            src="/frame.svg"
-            alt=""
-            className="absolute inset-0 h-full w-full select-none object-fill pointer-events-none"
-            draggable={false}
-            decoding="async"
-          />
+          {frameSvgHtml ? (
+            <div
+              className="absolute inset-0 h-full w-full select-none pointer-events-none [&>svg]:h-full [&>svg]:w-full [&>svg]:object-fill"
+              aria-hidden
+              dangerouslySetInnerHTML={{ __html: frameSvgHtml }}
+            />
+          ) : (
+            <img
+              src={`${import.meta.env.BASE_URL}frame.svg`}
+              alt=""
+              className="absolute inset-0 h-full w-full select-none object-fill pointer-events-none"
+              draggable={false}
+              decoding="async"
+            />
+          )}
           <div
             className="absolute z-10 [container-type:inline-size] [transform:translate3d(0,0,0)]"
             style={{

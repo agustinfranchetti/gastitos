@@ -6,15 +6,12 @@ A subscription tracker in the browser: month calendar with logos, totals, metric
 
 ## Screenshots
 
-![](./docs/screenshots/home.png)
-
-![](./docs/screenshots/metrics.png)
-
-![](./docs/screenshots/subscription.png)
-
-![](./docs/screenshots/month-picker.png)
-
-![](./docs/screenshots/settings.png)
+<p align="center">
+  <img src="./docs/screenshots/home.png" alt="Calendar" width="22%" />
+  <img src="./docs/screenshots/metrics.png" alt="Metrics" width="22%" />
+  <img src="./docs/screenshots/subscription.png" alt="Subscription detail" width="22%" />
+  <img src="./docs/screenshots/settings.png" alt="Settings" width="22%" />
+</p>
 
 ## Features
 

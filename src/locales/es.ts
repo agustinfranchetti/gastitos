@@ -20,6 +20,8 @@ const es = {
     pickMonthYear: "Ir a un mes",
     pickMonthHint: "Desliza y pulsa Listo.",
     pickMonthDone: "Listo",
+    pickNudgeUp: "Arriba",
+    pickNudgeDown: "Abajo",
     metrics: "Métricas",
     settings: "Ajustes",
   },

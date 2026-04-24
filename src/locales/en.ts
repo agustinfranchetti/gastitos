@@ -18,6 +18,8 @@ const en = {
     pickMonthYear: "Go to month",
     pickMonthHint: "Scroll and tap Done.",
     pickMonthDone: "Done",
+    pickNudgeUp: "Up",
+    pickNudgeDown: "Down",
     metrics: "Metrics",
     settings: "Settings",
   },
